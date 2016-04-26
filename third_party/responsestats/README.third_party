@@ -1,0 +1,10 @@
+URL: https://bitbucket.org/zombiezen/webapp/raw/e8e50517d046ec609849429e0dc4d48cf5c81c3a/handler.go
+Version: e8e50517d046ec609849429e0dc4d48cf5c81c3a
+License: BSD
+License File: LICENSE
+
+Description:
+The ResponseStats type from bitbucket.org/zombiezen/webapp.
+
+Local Modifications:
+No Modifications.
