@@ -1,0 +1,68 @@
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Roboto"), url("/fonts/Roboto-Regular.woff") format("woff");
+  /* TODO(light): unicode-range */
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  src: local("Roboto"), url("/fonts/Roboto-Bold.woff") format("woff");
+  /* TODO(light): unicode-range */
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+.pageContainer {
+  font: 14px/24px Roboto, Helvetica, sans-serif;
+  margin: 0 auto;
+  padding: 1ex 1em;
+  max-width: 650px;
+}
+
+.error {
+  font-weight: bold;
+  color: #730a0a;
+}
+
+.formGroup {
+}
+
+.entryFields {
+  display: table;
+}
+
+.entryField {
+  display: table-row;
+}
+
+.entryFieldName {
+  display: table-cell;
+  font-weight: bold;
+  padding-right: 1em;
+  vertical-align: top;
+}
+
+.entryFieldValue {
+  display: table-cell;
+  font: 14px/24px monospace;
+  white-space: pre;
+  vertical-align: top;
+}
+
+.entryFieldLongValue {
+  display: table-cell;
+  white-space: pre;
+  vertical-align: top;
+}
+
+.entryEditField {
+  display: table-cell;
+  vertical-align: top;
+}

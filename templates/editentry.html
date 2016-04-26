@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<title>Editing {{.Entry.Title}} - Sandpass</title>
+<link rel="stylesheet" href="/style.css">
+<div class="pageContainer">
+  <h1>Edit {{.Entry.Title}}</h1>
+  <form method="POST">
+    <div class="entryFields">
+      <div class="entryField">
+        <div class="entryFieldName">Title</div>
+        <div class="entryEditField">
+          <input type="text" name="title" value="{{.Entry.Title}}">
+        </div>
+      </div>
+      <div class="entryField">
+        <div class="entryFieldName">Username</div>
+        <div class="entryEditField">
+          <input type="text" name="username" value="{{.Entry.Username}}">
+        </div>
+      </div>
+      <div class="entryField">
+        <div class="entryFieldName">Password</div>
+        <div class="entryEditField">
+          <input type="text" name="password" value="{{.Entry.Password}}">
+        </div>
+      </div>
+      <div class="entryField">
+        <div class="entryFieldName">URL</div>
+        <div class="entryEditField">
+          <input type="url" name="url" value="{{.Entry.URL}}">
+        </div>
+      </div>
+      <div class="entryField">
+        <div class="entryFieldName">Notes</div>
+        <div class="entryEditField">
+          <textarea name="notes" rows="4" cols="20">{{.Entry.Notes}}</textarea>
+        </div>
+      </div>
+    </div>
+    <div>
+      <a href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}">Cancel</a>
+      <input type="submit" value="Save">
+    </div>
+  </form>
+</div>

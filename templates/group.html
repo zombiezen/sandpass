@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<title>{{.Name}} - Sandpass</title>
+<link rel="stylesheet" href="/style.css">
+<div class="pageContainer">
+  <h1>{{.Name}}</h1>
+  <div>
+    <a href="/groups/{{.ID}}/newentry">New Entry</a>
+  </div>
+  <ul>
+    {{range sortEntries .Entries}}
+    <li><a href="/groups/{{$.ID}}/entry/{{.UUID}}">{{.Title}}</a></li>
+    {{end}}
+  </ul>
+  <div><a href="/groups">Back to Groups</a></div>
+</div>

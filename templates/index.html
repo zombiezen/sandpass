@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<title>Sandpass</title>
+<link rel="stylesheet" href="/style.css">
+<div class="pageContainer">
+<h1>Sandpass</h1>
+{{if .FirstTime}}
+  <p>
+    Welcome to Sandpass!  Please enter an encryption passphrase for your database
+    below.  If you have an existing KeePassX database, you may upload it below,
+    but your passphrase must match the existing database.
+  </p>
+  {{with .Error}}
+    <div class="error">{{.}}</div>
+  {{end}}
+  <form method="POST" action="/_/newdb" enctype="multipart/form-data">
+    <div class="formGroup">
+      <label>Existing database (optional)</label>
+      <input type="file" name="database">
+    </div>
+    <div class="formGroup">
+      <label>Password</label>
+      <input type="password" name="password">
+    </div>
+    <div class="formGroup">
+      <label>Key File</label>
+      <input type="file" name="keyfile" accept=".key">
+    </div>
+    <input type="submit" value="Create">
+  </form>
+{{else}}
+  <p>
+    Welcome back to Sandpass!  Enter your encryption passphrase to continue.
+  </p>
+  {{with .Error}}
+    <div class="error">{{.}}</div>
+  {{end}}
+  <form method="POST" action="/_/start" enctype="multipart/form-data">
+    <div class="formGroup">
+      <label>Password</label>
+      <input type="password" name="password">
+    </div>
+    <div class="formGroup">
+      <label>Key File</label>
+      <input type="file" name="keyfile" accept=".key">
+    </div>
+    <input type="submit" value="Open">
+  </form>
+{{end}}
+</div>

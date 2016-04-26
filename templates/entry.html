@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<title>{{.Entry.Title}} - Sandpass</title>
+<link rel="stylesheet" href="/style.css">
+<div class="pageContainer">
+  {{with .Entry}}
+  <h1>{{.Title}}</h1>
+  <div>
+    <a href="/groups/{{$.Group.ID}}/entry/{{.UUID}}/edit">Edit</a>
+  </div>
+  <div class="entryFields">
+    {{with .Username}}
+    <div class="entryField">
+      <div class="entryFieldName">Username</div>
+      <div class="entryFieldValue">{{.}}</div>
+    </div>
+    {{end}}
+    {{with .Password}}
+    <div class="entryField">
+      <div class="entryFieldName">Password</div>
+      <div class="entryFieldValue">{{.}}</div>
+    </div>
+    {{end}}
+    {{with .URL}}
+    <div class="entryField">
+      <div class="entryFieldName">URL</div>
+      <div class="entryFieldValue"><a href="{{.}}" target="_blank">{{.}}</a></div>
+    </div>
+    {{end}}
+    {{with .Notes}}
+    <div class="entryField">
+      <div class="entryFieldName">Notes</div>
+      <div class="entryFieldLongValue">{{.}}</div>
+    </div>
+    {{end}}
+    <div class="entryField">
+      <div class="entryFieldName">Created</div>
+      <div class="entryFieldValue">{{template "time.html" .CreationTime}}</div>
+    </div>
+    <div class="entryField">
+      <div class="entryFieldName">Last Modified</div>
+      <div class="entryFieldValue">{{template "time.html" .LastModificationTime}}</div>
+    </div>
+    {{if not .ExpiryTime.IsZero}}
+    <div class="entryField">
+      <div class="entryFieldName">Expires</div>
+      <div class="entryFieldValue">{{template "time.html" .ExpiryTime}}</div>
+    </div>
+    {{end}}
+  </div>
+  {{end}}
+
+  {{with .Group}}
+  <div><a href="/groups/{{.ID}}">Back to {{.Name}}</a></div>
+  {{end}}
+</div>
