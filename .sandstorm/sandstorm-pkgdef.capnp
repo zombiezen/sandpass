@@ -13,7 +13,8 @@ const pkgdef :Spk.PackageDefinition = (
     appMarketingVersion = (defaultText = "0.1.0"),
 
     actions = [
-      ( nounPhrase = (defaultText = "database"),
+      ( title = (defaultText = "New database"),
+        nounPhrase = (defaultText = "database"),
         command = .launcher
       )
     ],
