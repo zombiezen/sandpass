@@ -7,6 +7,6 @@ set -euo pipefail
 cd /opt/app
 ./sandpass \
   -db=/var/keepass.kdb \
-  -listen='[::]:8080' \
+  -listen='[::]:8000' \
   -static_dir=/opt/app \
   -templates_dir=/opt/app/templates

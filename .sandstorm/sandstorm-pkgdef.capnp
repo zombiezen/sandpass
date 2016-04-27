@@ -37,7 +37,7 @@ const pkgdef :Spk.PackageDefinition = (
       codeUrl = "https://github.com/zombiezen/sandpass",
 
       license = (openSource = apache2,
-                 notices = embed "notices.txt"),
+                 notices = (defaultText = embed "notices.txt")),
 
       categories = [productivity],
 

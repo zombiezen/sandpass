@@ -10,5 +10,5 @@ if [[ ! -h $GOPATH/src/zombiezen.com/go/sandpass ]]; then
   mkdir -p $GOPATH/src/zombiezen.com/go/
   ln -s /opt/app $GOPATH/src/zombiezen.com/go/sandpass
 fi
-/usr/local/bin/go build -o sandpass zombiezen.com/go/sandpass
+/usr/local/go/bin/go build -o sandpass zombiezen.com/go/sandpass
 exit 0
