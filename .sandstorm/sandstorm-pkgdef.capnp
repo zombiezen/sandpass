@@ -82,6 +82,7 @@ const pkgdef :Spk.PackageDefinition = (
   fileList = "sandstorm-files.list",
 
   alwaysInclude = [
+    "opt/app/js",
     "opt/app/sandpass",
     "opt/app/templates",
   ],

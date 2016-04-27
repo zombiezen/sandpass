@@ -9,41 +9,47 @@
   </div>
   <div class="entryFields">
     {{with .Username}}
-    <div class="entryField">
+    <div class="entryFieldGroup">
       <div class="entryFieldName">Username</div>
-      <div class="entryFieldValue">{{.}}</div>
+      <div class="entryField entryFieldValue">{{.}}</div>
     </div>
     {{end}}
     {{with .Password}}
-    <div class="entryField">
+    <div class="entryFieldGroup">
       <div class="entryFieldName">Password</div>
-      <div class="entryFieldValue">{{.}}</div>
+      <div class="entryField">
+        <span id="password" class="entryFieldValue" data-value="{{.}}">**********</span>
+        <div>
+          <button id="showpassword">Show</button>
+          <button id="copypassword" data-clipboard-text="{{.}}">Copy</button>
+        </div>
+      </div>
     </div>
     {{end}}
     {{with .URL}}
-    <div class="entryField">
+    <div class="entryFieldGroup">
       <div class="entryFieldName">URL</div>
-      <div class="entryFieldValue"><a href="{{.}}" target="_blank">{{.}}</a></div>
+      <div class="entryField entryFieldValue"><a href="{{.}}" target="_blank">{{.}}</a></div>
     </div>
     {{end}}
     {{with .Notes}}
-    <div class="entryField">
+    <div class="entryFieldGroup">
       <div class="entryFieldName">Notes</div>
-      <div class="entryFieldLongValue">{{.}}</div>
+      <div class="entryField entryFieldValue">{{.}}</div>
     </div>
     {{end}}
-    <div class="entryField">
+    <div class="entryFieldGroup">
       <div class="entryFieldName">Created</div>
-      <div class="entryFieldValue">{{template "time.html" .CreationTime}}</div>
+      <div class="entryField entryFieldValue">{{template "time.html" .CreationTime}}</div>
     </div>
-    <div class="entryField">
+    <div class="entryFieldGroup">
       <div class="entryFieldName">Last Modified</div>
-      <div class="entryFieldValue">{{template "time.html" .LastModificationTime}}</div>
+      <div class="entryField entryFieldValue">{{template "time.html" .LastModificationTime}}</div>
     </div>
     {{if not .ExpiryTime.IsZero}}
-    <div class="entryField">
+    <div class="entryFieldGroup">
       <div class="entryFieldName">Expires</div>
-      <div class="entryFieldValue">{{template "time.html" .ExpiryTime}}</div>
+      <div class="entryField entryFieldValue">{{template "time.html" .ExpiryTime}}</div>
     </div>
     {{end}}
   </div>
@@ -53,3 +59,5 @@
   <div><a href="/groups/{{.ID}}">Back to {{.Name}}</a></div>
   {{end}}
 </div>
+<script src="/js/clipboard.js"></script>
+<script src="/js/entry.js"></script>

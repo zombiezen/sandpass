@@ -5,33 +5,33 @@
   <h1>Edit {{.Entry.Title}}</h1>
   <form method="POST">
     <div class="entryFields">
-      <div class="entryField">
+      <div class="entryFieldGroup">
         <div class="entryFieldName">Title</div>
-        <div class="entryEditField">
+        <div class="entryField">
           <input type="text" name="title" value="{{.Entry.Title}}">
         </div>
       </div>
-      <div class="entryField">
+      <div class="entryFieldGroup">
         <div class="entryFieldName">Username</div>
-        <div class="entryEditField">
+        <div class="entryField">
           <input type="text" name="username" value="{{.Entry.Username}}">
         </div>
       </div>
-      <div class="entryField">
+      <div class="entryFieldGroup">
         <div class="entryFieldName">Password</div>
-        <div class="entryEditField">
+        <div class="entryField">
           <input type="text" name="password" value="{{.Entry.Password}}">
         </div>
       </div>
-      <div class="entryField">
+      <div class="entryFieldGroup">
         <div class="entryFieldName">URL</div>
-        <div class="entryEditField">
+        <div class="entryField">
           <input type="url" name="url" value="{{.Entry.URL}}">
         </div>
       </div>
-      <div class="entryField">
+      <div class="entryFieldGroup">
         <div class="entryFieldName">Notes</div>
-        <div class="entryEditField">
+        <div class="entryField">
           <textarea name="notes" rows="4" cols="20">{{.Entry.Notes}}</textarea>
         </div>
       </div>

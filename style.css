@@ -54,7 +54,7 @@ html, body {
   display: table;
 }
 
-.entryField {
+.entryFieldGroup {
   display: table-row;
 }
 
@@ -65,20 +65,12 @@ html, body {
   vertical-align: top;
 }
 
-.entryFieldValue {
+.entryField {
   display: table-cell;
+  vertical-align: top;
+}
+
+.entryFieldValue {
   font: 14px/24px monospace;
   white-space: pre;
-  vertical-align: top;
-}
-
-.entryFieldLongValue {
-  display: table-cell;
-  white-space: pre;
-  vertical-align: top;
-}
-
-.entryEditField {
-  display: table-cell;
-  vertical-align: top;
 }
