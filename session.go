@@ -97,6 +97,10 @@ func (s *session) attach(w http.ResponseWriter) {
 
 func (s *session) openDatabase() (*keepass.Database, error) {
 	if !s.isValid() {
+		// If the database isn't encrypted, then don't require a session.
+		if db, err := openDatabase("", nil); err == nil {
+			return db, nil
+		}
 		return nil, errInvalidSession
 	}
 	return openDatabase(s.password, s.keyfile)

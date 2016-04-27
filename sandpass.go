@@ -152,8 +152,18 @@ func extractRequestParams(db *keepass.Database, r *http.Request) (requestParams,
 func index(w http.ResponseWriter, r *http.Request) error {
 	mu.Lock()
 	exists := dbStorage.exists()
+	hasPassword := true
+	if exists {
+		if _, err := openDatabase("", nil); err == nil {
+			hasPassword = false
+		}
+	}
 	mu.Unlock()
 
+	if exists && !hasPassword {
+		http.Redirect(w, r, "/groups", http.StatusSeeOther)
+		return nil
+	}
 	return tmpl.ExecuteTemplate(w, "index.html", struct {
 		FirstTime bool
 		Error     string
