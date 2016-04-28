@@ -141,6 +141,11 @@ func appendHex(b, src []byte) []byte {
 	return b
 }
 
+// IsZero reports whether this is the zero UUID.
+func (u UUID) IsZero() bool {
+	return u == UUID{}
+}
+
 // String returns the dash-separated hex representation of u as a string.
 func (u UUID) String() string {
 	b := make([]byte, 0, 36)

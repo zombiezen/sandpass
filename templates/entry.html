@@ -2,8 +2,14 @@
 <title>{{.Entry.Title}} - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
+  <nav class="breadcrumb">
+    <a href="/groups">Groups</a> &#x279C;
+    {{with .Group}}
+    <a href="/groups/{{.ID}}">{{.Name}}</a> &#x279C;
+    {{end}}
+  </nav>
+  <h1 class="pageTitle">{{.Entry.Title}}</h1>
   {{with .Entry}}
-  <h1>{{.Title}}</h1>
   <div>
     <a href="/groups/{{$.Group.ID}}/entry/{{.UUID}}/edit">Edit</a>
   </div>
@@ -53,10 +59,6 @@
     </div>
     {{end}}
   </div>
-  {{end}}
-
-  {{with .Group}}
-  <div><a href="/groups/{{.ID}}">Back to {{.Name}}</a></div>
   {{end}}
 </div>
 <script src="/js/clipboard.js"></script>

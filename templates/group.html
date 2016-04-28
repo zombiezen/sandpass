@@ -2,7 +2,10 @@
 <title>{{.Name}} - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <h1>{{.Name}}</h1>
+  <nav class="breadcrumb">
+    <a href="/groups">Groups</a> &#x279C;
+  </nav>
+  <h1 class="pageTitle">{{.Name}}</h1>
   <div>
     <a href="/groups/{{.ID}}/newentry">New Entry</a>
   </div>
@@ -11,5 +14,4 @@
     <li><a href="/groups/{{$.ID}}/entry/{{.UUID}}">{{.Title}}</a></li>
     {{end}}
   </ul>
-  <div><a href="/groups">Back to Groups</a></div>
 </div>

@@ -2,7 +2,19 @@
 <title>Editing {{.Entry.Title}} - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <h1>Edit {{.Entry.Title}}</h1>
+  <nav class="breadcrumb">
+    <a href="/groups">Groups</a> &#x279C;
+    {{with .Group}}
+    <a href="/groups/{{.ID}}">{{.Name}}</a> &#x279C;
+    {{end}}
+  </nav>
+  <h1 class="pageTitle">
+    {{if .Entry.UUID.IsZero}}
+    New Entry
+    {{else}}
+    Edit {{.Entry.Title}}
+    {{end}}
+  </h1>
   <form method="POST">
     <div class="entryFields">
       <div class="entryFieldGroup">
@@ -37,7 +49,7 @@
       </div>
     </div>
     <div>
-      <a href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}">Cancel</a>
+      <a href="/groups/{{.Group.ID}}{{if not .Entry.UUID.IsZero}}/entry/{{.Entry.UUID}}{{end}}">Cancel</a>
       <input type="submit" value="Save">
     </div>
   </form>

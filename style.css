@@ -42,6 +42,14 @@ html, body {
   max-width: 650px;
 }
 
+.pageTitle {
+  margin: 4px 0 20px;
+}
+
+.pageTitle.noBreadcrumb {
+  margin: 20px 0;
+}
+
 .error {
   font-weight: bold;
   color: #730a0a;
