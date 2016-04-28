@@ -41,9 +41,10 @@ const BlockSize = 16
 
 // Params specifies the encryption/decryption values.
 type Params struct {
-	Key    Key
-	Cipher Cipher
-	IV     [16]byte
+	Key         Key
+	ComputedKey ComputedKey // if non-nil, this will be used instead of Key.
+	Cipher      Cipher
+	IV          [16]byte
 }
 
 // A Key is the set of parameters used to build the cipher key.
@@ -55,7 +56,8 @@ type Key struct {
 	TransformRounds uint32
 }
 
-func (k *Key) build() []byte {
+// Compute derives the actual cipher key from the user-specifiable parameters.
+func (k *Key) Compute() ComputedKey {
 	sum := sha256.New()
 
 	sum.Write(k.MasterSeed[:])
@@ -106,6 +108,12 @@ func transformKeyBlock(wg *sync.WaitGroup, dst, src, seed []byte, rounds uint32)
 	wg.Done()
 }
 
+// A ComputedKey is the encryption key that is directly passed to the
+// cipher, derived from a Key.  Since computing a key is slow by design,
+// if you intend to decrypt and encrypt a database multiple times in
+// quick succession, this will be much faster.
+type ComputedKey []byte
+
 // Cipher is a cipher algorithm.
 type Cipher int
 
@@ -115,12 +123,12 @@ const (
 	TwofishCipher
 )
 
-func (c Cipher) cipher(key []byte) (cipher.Block, error) {
+func (c Cipher) cipher(key ComputedKey) (cipher.Block, error) {
 	switch c {
 	case RijndaelCipher:
-		return aes.NewCipher(key)
+		return aes.NewCipher([]byte(key))
 	case TwofishCipher:
-		return twofish.NewCipher(key)
+		return twofish.NewCipher([]byte(key))
 	default:
 		return nil, ErrUnknownCipher
 	}
@@ -129,7 +137,11 @@ func (c Cipher) cipher(key []byte) (cipher.Block, error) {
 // NewEncrypter creates a new writer that encrypts to w.  Closing the
 // new writer writes the final, padded block but does not close w.
 func NewEncrypter(w io.Writer, params *Params) (io.WriteCloser, error) {
-	ciph, err := params.Cipher.cipher(params.Key.build())
+	ck := params.ComputedKey
+	if ck == nil {
+		ck = params.Key.Compute()
+	}
+	ciph, err := params.Cipher.cipher(ck)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +151,11 @@ func NewEncrypter(w io.Writer, params *Params) (io.WriteCloser, error) {
 
 // NewDecrypter creates a new reader that decrypts and strips padding from r.
 func NewDecrypter(r io.Reader, params *Params) (io.Reader, error) {
-	ciph, err := params.Cipher.cipher(params.Key.build())
+	ck := params.ComputedKey
+	if ck == nil {
+		ck = params.Key.Compute()
+	}
+	ciph, err := params.Cipher.cipher(ck)
 	if err != nil {
 		return nil, err
 	}
