@@ -213,12 +213,26 @@ func TestWrite_GroupAndEntry(t *testing.T) {
 func TestWrite_Identity(t *testing.T) {
 	tests := []struct {
 		openParams
+		cryptTextDiffers bool // used for verifying IV changes
 	}{
 		{
-			openParams{
-				db:   "passwordonly.kdb",
-				opts: &Options{Password: "swordfish"},
+			openParams: openParams{
+				db: "passwordonly.kdb",
+				opts: &Options{
+					Password:           "swordfish",
+					StaticIVForTesting: true,
+				},
 			},
+		},
+		{
+			openParams: openParams{
+				db: "passwordonly.kdb",
+				opts: &Options{
+					Password:           "swordfish",
+					StaticIVForTesting: false,
+				},
+			},
+			cryptTextDiffers: true,
 		},
 	}
 
@@ -226,6 +240,12 @@ func TestWrite_Identity(t *testing.T) {
 		want, err := testFile(test.db)
 		if err != nil {
 			t.Errorf("testFile(%q) error: %v", test.db, err)
+			continue
+		}
+		wantPlain, err := debugDecrypt(want.Bytes(), test.opts)
+		if err != nil {
+			t.Errorf("debugDecrypt(testFile(%q), %v) error: %v", test.db, test.opts, err)
+			continue
 		}
 		db, err := test.open()
 		if err != nil {
@@ -237,20 +257,27 @@ func TestWrite_Identity(t *testing.T) {
 		err = db.Write(out)
 
 		if err != nil {
-			t.Errorf("%v.Write() error: %v", test.openParams, err)
+			t.Errorf("%v.Write(w) error: %v", test.openParams, err)
 			continue
 		}
-		if !bytes.Equal(out.Bytes(), want.Bytes()) {
-			outPlain, outErr := debugDecrypt(out.Bytes(), test.opts)
-			wantPlain, wantErr := debugDecrypt(want.Bytes(), test.opts)
-			if outErr != nil || wantErr != nil {
-				t.Errorf("%v.Write(w) =\n%s\n; want\n%s", test.openParams, hex.Dump(out.Bytes()), hex.Dump(want.Bytes()))
-			} else {
-				t.Errorf("%v.Write(w) header:\n%s\nplain:\n%s\n; want header:\n%s\nplain:\n%s",
-					test.openParams,
-					hex.Dump(out.Bytes()[:headerSize]), hex.Dump(outPlain),
-					hex.Dump(want.Bytes()[:headerSize]), hex.Dump(wantPlain))
-			}
+		outPlain, err := debugDecrypt(out.Bytes(), test.opts)
+		if err != nil {
+			t.Errorf("could not decrypt output of %v.Write(w): %v\n%s\n; want\n%s", test.openParams, err, hex.Dump(out.Bytes()), hex.Dump(want.Bytes()))
+			continue
+		}
+		if !bytes.Equal(outPlain, wantPlain) {
+			t.Errorf("%v.Write(w) header:\n%s\nplain:\n%s\n; want header:\n%s\nplain:\n%s",
+				test.openParams,
+				hex.Dump(out.Bytes()[:headerSize]), hex.Dump(outPlain),
+				hex.Dump(want.Bytes()[:headerSize]), hex.Dump(wantPlain))
+		}
+		if test.cryptTextDiffers && bytes.Equal(out.Bytes()[headerSize:], want.Bytes()[headerSize:]) {
+			t.Errorf("%v.Write(w) has identical cipher text; should differ", test.openParams)
+		} else if !test.cryptTextDiffers && !bytes.Equal(out.Bytes(), want.Bytes()) {
+			t.Errorf("%v.Write(w) header:\n%s\nplain:\n%s\n; want header:\n%s\nplain:\n%s",
+				test.openParams,
+				hex.Dump(out.Bytes()[:headerSize]), hex.Dump(outPlain),
+				hex.Dump(want.Bytes()[:headerSize]), hex.Dump(wantPlain))
 		}
 	}
 }

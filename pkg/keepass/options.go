@@ -43,6 +43,10 @@ type Options struct {
 	// Cipher to encrypt with.  Defaults to AES-256 (RijndaelCipher).
 	// Only used for creation.
 	Cipher kdbcrypt.Cipher
+
+	// StaticIVForTesting will keep the IV the same between writes, useful
+	// for testing, but insecure. Never enable this in production code!
+	StaticIVForTesting bool
 }
 
 func (opts *Options) newCryptParams() (*kdbcrypt.Params, error) {

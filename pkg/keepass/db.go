@@ -31,20 +31,22 @@ import (
 
 // A Database represents a decrypted KDB file.
 type Database struct {
-	cparams *kdbcrypt.Params
-	root    *Group
-	groups  map[uint32]*Group
-	entries []*Entry
-	meta    []*Entry
-	rand    io.Reader
+	cparams  *kdbcrypt.Params
+	staticIV bool
+	root     *Group
+	groups   map[uint32]*Group
+	entries  []*Entry
+	meta     []*Entry
+	rand     io.Reader
 }
 
 func newDatabase(cparams *kdbcrypt.Params, g []Group, e []Entry, opts *Options) *Database {
 	db := &Database{
-		cparams: cparams,
-		groups:  make(map[uint32]*Group, len(g)),
-		entries: make([]*Entry, 0, len(e)),
-		rand:    opts.getRand(),
+		cparams:  cparams,
+		staticIV: opts.StaticIVForTesting,
+		groups:   make(map[uint32]*Group, len(g)),
+		entries:  make([]*Entry, 0, len(e)),
+		rand:     opts.getRand(),
 	}
 	db.root = &Group{
 		Name: "Root",
@@ -96,6 +98,12 @@ func (db *Database) FindGroup(id uint32) *Group {
 
 // Write encodes the database to a writer.
 func (db *Database) Write(w io.Writer) error {
+	if !db.staticIV {
+		_, err := io.ReadFull(db.rand, db.cparams.IV[:])
+		if err != nil {
+			return err
+		}
+	}
 	buf := new(bytes.Buffer)
 	enc, err := kdbcrypt.NewEncrypter(buf, db.cparams)
 	if err != nil {
