@@ -2,7 +2,11 @@
 <title>Groups - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <h1 class="pageTitle noBreadcrumb">Groups</h1>
-  {{template "grouplist.html" .DB.Root}}
+  <div class="pageHeader">
+    <h1 class="pageTitle noBreadcrumb">Groups</h1>
+  </div>
+  <div class="pageBody">
+    {{template "grouplist.html" .DB.Root}}
+  </div>
 </div>
 <script src="/js/sandnav.js"></script>

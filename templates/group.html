@@ -2,17 +2,21 @@
 <title>{{.Name}} - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <nav class="breadcrumb">
-    <a href="/groups">Groups</a> &#x279C;
-  </nav>
-  <h1 class="pageTitle">{{.Name}}</h1>
-  <div>
-    <a href="/groups/{{.ID}}/newentry">New Entry</a>
+  <div class="pageHeader">
+    <nav class="breadcrumb">
+      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+    </nav>
+    <h1 class="pageTitle">{{.Name}}</h1>
   </div>
-  <ul>
-    {{range sortEntries .Entries}}
-    <li><a href="/groups/{{$.ID}}/entry/{{.UUID}}">{{.Title}}</a></li>
-    {{end}}
-  </ul>
+  <div class="pageBody">
+    <div>
+      <a href="/groups/{{.ID}}/newentry">New Entry</a>
+    </div>
+    <ul>
+      {{range sortEntries .Entries}}
+      <li><a href="/groups/{{$.ID}}/entry/{{.UUID}}">{{.Title}}</a></li>
+      {{end}}
+    </ul>
+  </div>
 </div>
 <script src="/js/sandnav.js"></script>

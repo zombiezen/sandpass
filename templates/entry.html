@@ -2,64 +2,68 @@
 <title>{{.Entry.Title}} - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <nav class="breadcrumb">
-    <a href="/groups">Groups</a> &#x279C;
-    {{with .Group}}
-    <a href="/groups/{{.ID}}">{{.Name}}</a> &#x279C;
-    {{end}}
-  </nav>
-  <h1 class="pageTitle">{{.Entry.Title}}</h1>
-  {{with .Entry}}
-  <div>
-    <a href="/groups/{{$.Group.ID}}/entry/{{.UUID}}/edit">Edit</a>
+  <div class="pageHeader">
+    <nav class="breadcrumb">
+      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+      {{with .Group}}
+      <a href="/groups/{{.ID}}" class="breadcrumbLink">{{.Name}}</a> &#x279C;
+      {{end}}
+    </nav>
+    <h1 class="pageTitle">{{.Entry.Title}}</h1>
   </div>
-  <div class="entryFields">
-    {{with .Username}}
-    <div class="entryFieldGroup">
-      <div class="entryFieldName">Username</div>
-      <div class="entryField entryFieldValue">{{.}}</div>
+  <div class="pageBody">
+    {{with .Entry}}
+    <div>
+      <a href="/groups/{{$.Group.ID}}/entry/{{.UUID}}/edit">Edit</a>
     </div>
-    {{end}}
-    {{with .Password}}
-    <div class="entryFieldGroup">
-      <div class="entryFieldName">Password</div>
-      <div class="entryField">
-        <span id="password" class="entryFieldValue" data-value="{{.}}">**********</span>
-        <div>
-          <button id="showpassword">Show</button>
-          <button id="copypassword" data-clipboard-text="{{.}}">Copy</button>
+    <div class="entryFields">
+      {{with .Username}}
+      <div class="entryFieldGroup">
+        <div class="entryFieldName">Username</div>
+        <div class="entryField entryFieldValue">{{.}}</div>
+      </div>
+      {{end}}
+      {{with .Password}}
+      <div class="entryFieldGroup">
+        <div class="entryFieldName">Password</div>
+        <div class="entryField">
+          <span id="password" class="entryFieldValue" data-value="{{.}}">**********</span>
+          <div>
+            <button id="showpassword">Show</button>
+            <button id="copypassword" data-clipboard-text="{{.}}">Copy</button>
+          </div>
         </div>
       </div>
-    </div>
-    {{end}}
-    {{with .URL}}
-    <div class="entryFieldGroup">
-      <div class="entryFieldName">URL</div>
-      <div class="entryField entryFieldValue"><a href="{{.}}" target="_blank">{{.}}</a></div>
-    </div>
-    {{end}}
-    {{with .Notes}}
-    <div class="entryFieldGroup">
-      <div class="entryFieldName">Notes</div>
-      <div class="entryField entryFieldValue">{{.}}</div>
-    </div>
-    {{end}}
-    <div class="entryFieldGroup">
-      <div class="entryFieldName">Created</div>
-      <div class="entryField entryFieldValue">{{template "time.html" .CreationTime}}</div>
-    </div>
-    <div class="entryFieldGroup">
-      <div class="entryFieldName">Last Modified</div>
-      <div class="entryField entryFieldValue">{{template "time.html" .LastModificationTime}}</div>
-    </div>
-    {{if not .ExpiryTime.IsZero}}
-    <div class="entryFieldGroup">
-      <div class="entryFieldName">Expires</div>
-      <div class="entryField entryFieldValue">{{template "time.html" .ExpiryTime}}</div>
+      {{end}}
+      {{with .URL}}
+      <div class="entryFieldGroup">
+        <div class="entryFieldName">URL</div>
+        <div class="entryField entryFieldValue"><a href="{{.}}" target="_blank">{{.}}</a></div>
+      </div>
+      {{end}}
+      {{with .Notes}}
+      <div class="entryFieldGroup">
+        <div class="entryFieldName">Notes</div>
+        <div class="entryField entryFieldValue">{{.}}</div>
+      </div>
+      {{end}}
+      <div class="entryFieldGroup">
+        <div class="entryFieldName">Created</div>
+        <div class="entryField entryFieldValue">{{template "time.html" .CreationTime}}</div>
+      </div>
+      <div class="entryFieldGroup">
+        <div class="entryFieldName">Last Modified</div>
+        <div class="entryField entryFieldValue">{{template "time.html" .LastModificationTime}}</div>
+      </div>
+      {{if not .ExpiryTime.IsZero}}
+      <div class="entryFieldGroup">
+        <div class="entryFieldName">Expires</div>
+        <div class="entryField entryFieldValue">{{template "time.html" .ExpiryTime}}</div>
+      </div>
+      {{end}}
     </div>
     {{end}}
   </div>
-  {{end}}
 </div>
 <script src="/js/sandnav.js"></script>
 <script src="/js/clipboard.js"></script>

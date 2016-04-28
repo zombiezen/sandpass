@@ -31,31 +31,55 @@ limitations under the License.
 }
 
 html, body {
+  background: #ffe0b2;
   margin: 0;
   padding: 0;
 }
 
 .pageContainer {
   font: 14px/24px Roboto, Helvetica, sans-serif;
-  margin: 0 auto;
-  padding: 1ex 1em;
+  margin: 8px auto 0;
+  padding: 0 0 16px;
   max-width: 650px;
 }
 
+.pageHeader {
+  background: #ef6c00;
+  color: white;
+  margin: 0;
+  padding: 8px 16px;
+}
+
+.breadcrumbLink:link {
+  color: white;
+  text-decoration: none;
+}
+
+.breadcrumbLink:visited {
+  color: white;
+  text-decoration: none;
+}
+
+.breadcrumbLink:hover {
+  text-decoration: underline;
+}
+
 .pageTitle {
-  margin: 4px 0 20px;
+  margin: 4px 0 0;
 }
 
 .pageTitle.noBreadcrumb {
-  margin: 20px 0;
+  margin: 0;
+}
+
+.pageBody {
+  background: white;
+  padding: 8px 16px;
 }
 
 .error {
   font-weight: bold;
   color: #730a0a;
-}
-
-.formGroup {
 }
 
 .entryFields {
@@ -69,7 +93,7 @@ html, body {
 .entryFieldName {
   display: table-cell;
   font-weight: bold;
-  padding-right: 1em;
+  padding-right: 16px;
   vertical-align: top;
 }
 

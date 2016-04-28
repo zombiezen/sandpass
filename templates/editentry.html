@@ -8,56 +8,60 @@
 </title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <nav class="breadcrumb">
-    <a href="/groups">Groups</a> &#x279C;
-    {{with .Group}}
-    <a href="/groups/{{.ID}}">{{.Name}}</a> &#x279C;
-    {{end}}
-  </nav>
-  <h1 class="pageTitle">
-    {{if .Entry.UUID.IsZero}}
-    New Entry
-    {{else}}
-    Edit {{.Entry.Title}}
-    {{end}}
-  </h1>
-  <form method="POST">
-    <div class="entryFields">
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">Title</div>
-        <div class="entryField">
-          <input type="text" name="title" value="{{.Entry.Title}}">
+  <div class="pageHeader">
+    <nav class="breadcrumb">
+      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+      {{with .Group}}
+      <a href="/groups/{{.ID}}" class="breadcrumbLink">{{.Name}}</a> &#x279C;
+      {{end}}
+    </nav>
+    <h1 class="pageTitle">
+      {{if .Entry.UUID.IsZero}}
+      New Entry
+      {{else}}
+      Edit {{.Entry.Title}}
+      {{end}}
+    </h1>
+  </div>
+  <div class="pageBody">
+    <form method="POST">
+      <div class="entryFields">
+        <div class="entryFieldGroup">
+          <div class="entryFieldName">Title</div>
+          <div class="entryField">
+            <input type="text" name="title" value="{{.Entry.Title}}">
+          </div>
+        </div>
+        <div class="entryFieldGroup">
+          <div class="entryFieldName">Username</div>
+          <div class="entryField">
+            <input type="text" name="username" value="{{.Entry.Username}}">
+          </div>
+        </div>
+        <div class="entryFieldGroup">
+          <div class="entryFieldName">Password</div>
+          <div class="entryField">
+            <input type="text" name="password" value="{{.Entry.Password}}">
+          </div>
+        </div>
+        <div class="entryFieldGroup">
+          <div class="entryFieldName">URL</div>
+          <div class="entryField">
+            <input type="url" name="url" value="{{.Entry.URL}}">
+          </div>
+        </div>
+        <div class="entryFieldGroup">
+          <div class="entryFieldName">Notes</div>
+          <div class="entryField">
+            <textarea name="notes" rows="4" cols="20">{{.Entry.Notes}}</textarea>
+          </div>
         </div>
       </div>
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">Username</div>
-        <div class="entryField">
-          <input type="text" name="username" value="{{.Entry.Username}}">
-        </div>
+      <div>
+        <a href="/groups/{{.Group.ID}}{{if not .Entry.UUID.IsZero}}/entry/{{.Entry.UUID}}{{end}}">Cancel</a>
+        <input type="submit" value="Save">
       </div>
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">Password</div>
-        <div class="entryField">
-          <input type="text" name="password" value="{{.Entry.Password}}">
-        </div>
-      </div>
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">URL</div>
-        <div class="entryField">
-          <input type="url" name="url" value="{{.Entry.URL}}">
-        </div>
-      </div>
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">Notes</div>
-        <div class="entryField">
-          <textarea name="notes" rows="4" cols="20">{{.Entry.Notes}}</textarea>
-        </div>
-      </div>
-    </div>
-    <div>
-      <a href="/groups/{{.Group.ID}}{{if not .Entry.UUID.IsZero}}/entry/{{.Entry.UUID}}{{end}}">Cancel</a>
-      <input type="submit" value="Save">
-    </div>
-  </form>
+    </form>
+  </div>
 </div>
 <script src="/js/sandnav.js"></script>
