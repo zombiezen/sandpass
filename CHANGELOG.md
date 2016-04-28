@@ -1,3 +1,8 @@
+# v0.2.1
+
+* Basic styling
+* Actually bump version number
+
 # v0.2.0
 
 * Allow toggling password visibility

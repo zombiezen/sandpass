@@ -9,8 +9,8 @@ const pkgdef :Spk.PackageDefinition = (
   id = "rq41p170hcs5rzg66axggv8r90fjcssdky8891kq5s7jcpm1813h",
   manifest = (
     appTitle = (defaultText = "Sandpass"),
-    appVersion = 0,  # Increment this for every release.
-    appMarketingVersion = (defaultText = "0.1.0"),
+    appVersion = 1,  # Increment this for every release.
+    appMarketingVersion = (defaultText = "0.2.1"),
 
     actions = [
       ( title = (defaultText = "New database"),
