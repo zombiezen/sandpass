@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<title>Editing {{.Entry.Title}} - Sandpass</title>
+<title>
+  {{- if .Entry.UUID.IsZero -}}
+  New Entry
+  {{- else -}}
+  Edit {{.Entry.Title}}
+  {{- end}} - Sandpass
+</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
   <nav class="breadcrumb">
