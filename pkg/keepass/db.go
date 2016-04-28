@@ -31,7 +31,7 @@ import (
 
 // A Database represents a decrypted KDB file.
 type Database struct {
-	cparams  *kdbcrypt.Params
+	cparams  kdbcrypt.Params
 	staticIV bool
 	root     *Group
 	groups   map[uint32]*Group
@@ -40,18 +40,19 @@ type Database struct {
 	rand     io.Reader
 }
 
-func newDatabase(cparams *kdbcrypt.Params, g []Group, e []Entry, opts *Options) *Database {
-	db := &Database{
-		cparams:  cparams,
-		staticIV: opts.StaticIVForTesting,
-		groups:   make(map[uint32]*Group, len(g)),
-		entries:  make([]*Entry, 0, len(e)),
-		rand:     opts.getRand(),
+// init is called after cparams is filled in to initialize the database.
+func (db *Database) init(g []Group, e []Entry, opts *Options) {
+	// Clear uncomputed key material.
+	if db.cparams.ComputedKey == nil {
+		panic("key should have been precomputed")
 	}
-	db.root = &Group{
-		Name: "Root",
-		db:   db,
-	}
+	db.cparams.Key.Password, db.cparams.Key.KeyFileHash = nil, nil
+
+	db.staticIV = opts.staticIV()
+	db.groups = make(map[uint32]*Group, len(g))
+	db.entries = make([]*Entry, 0, len(e))
+	db.rand = opts.getRand()
+	db.root = &Group{Name: "Root", db: db}
 	for i := range g {
 		gg := &g[i]
 		db.groups[gg.ID] = gg
@@ -64,16 +65,16 @@ func newDatabase(cparams *kdbcrypt.Params, g []Group, e []Entry, opts *Options) 
 			db.entries = append(db.entries, ee)
 		}
 	}
-	return db
 }
 
 // New creates a new empty database.
 func New(opts *Options) (*Database, error) {
-	p, err := opts.newCryptParams()
-	if err != nil {
+	db := new(Database)
+	if err := opts.initCryptParams(&db.cparams); err != nil {
 		return nil, err
 	}
-	return newDatabase(p, nil, nil, opts), nil
+	db.init(nil, nil, opts)
+	return db, nil
 }
 
 // Root returns the root group.
@@ -105,7 +106,7 @@ func (db *Database) Write(w io.Writer) error {
 		}
 	}
 	buf := new(bytes.Buffer)
-	enc, err := kdbcrypt.NewEncrypter(buf, db.cparams)
+	enc, err := kdbcrypt.NewEncrypter(buf, &db.cparams)
 	if err != nil {
 		return err
 	}
@@ -121,7 +122,7 @@ func (db *Database) Write(w io.Writer) error {
 
 	h := header{
 		// TODO(light): what does bit 1 do?
-		encryptionFlags: makeEncryptionFlags(db.cparams) | 1,
+		encryptionFlags: makeEncryptionFlags(&db.cparams) | 1,
 		masterSeed:      db.cparams.Key.MasterSeed,
 		encryptionIV:    db.cparams.IV,
 		numGroups:       uint32(ngroups),
@@ -358,16 +359,17 @@ func Open(r io.Reader, opts *Options) (*Database, error) {
 	}
 
 	// TODO(light): try non-UTF8 encodings
-	cparams, err := h.newCryptParams([]byte(opts.getPassword()), kh)
+	db := new(Database)
+	err = h.initCryptParams(&db.cparams, []byte(opts.getPassword()), kh)
 	if err != nil {
 		return nil, err
 	}
-	plain, err := decryptDatabase(crypt, cparams, h.contentHash[:])
+	plain, err := decryptDatabase(crypt, &db.cparams, h.contentHash[:])
 	if err != nil {
 		return nil, err
 	}
 
-	return parse(bytes.NewReader(plain), int(h.numGroups), int(h.numEntries), cparams, opts)
+	return parse(db, bytes.NewReader(plain), int(h.numGroups), int(h.numEntries), opts)
 }
 
 type parseState struct {
@@ -376,7 +378,7 @@ type parseState struct {
 	entryGroupIDs map[*Entry]uint32
 }
 
-func parse(r io.Reader, numGroups, numEntries int, p *kdbcrypt.Params, opts *Options) (*Database, error) {
+func parse(db *Database, r io.Reader, numGroups, numEntries int, opts *Options) (*Database, error) {
 	state := parseState{
 		groups:        make(map[uint32]*Group),
 		groupLevels:   make(map[*Group]uint16),
@@ -384,6 +386,7 @@ func parse(r io.Reader, numGroups, numEntries int, p *kdbcrypt.Params, opts *Opt
 	}
 	groups := make([]Group, numGroups)
 	for i := range groups {
+		groups[i].db = db
 		err := groups[i].read(&state, r)
 		if err != nil {
 			return nil, err
@@ -396,11 +399,10 @@ func parse(r io.Reader, numGroups, numEntries int, p *kdbcrypt.Params, opts *Opt
 			return nil, err
 		}
 	}
-	db := newDatabase(p, groups, entries, opts)
+	db.init(groups, entries, opts)
 
 	for i := range groups {
 		g := &groups[i]
-		g.db = db
 		parent := state.findGroupParent(db, groups, i)
 		if parent == nil {
 			return nil, errGroupsInconsistent
@@ -729,22 +731,23 @@ func (h *header) cipher() (kdbcrypt.Cipher, error) {
 	}
 }
 
-func (h *header) newCryptParams(password, keyFileHash []byte) (*kdbcrypt.Params, error) {
-	c, err := h.cipher()
+// initCryptParams returns kdbcrypt parameters for an existing database.
+func (h *header) initCryptParams(p *kdbcrypt.Params, password, keyFileHash []byte) error {
+	var err error
+	p.Cipher, err = h.cipher()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &kdbcrypt.Params{
-		Key: kdbcrypt.Key{
-			Password:        password,
-			KeyFileHash:     keyFileHash,
-			MasterSeed:      h.masterSeed,
-			TransformSeed:   h.transformSeed,
-			TransformRounds: h.transformRounds,
-		},
-		Cipher: c,
-		IV:     h.encryptionIV,
-	}, nil
+	p.IV = h.encryptionIV
+	p.Key = kdbcrypt.Key{
+		Password:        password,
+		KeyFileHash:     keyFileHash,
+		MasterSeed:      h.masterSeed,
+		TransformSeed:   h.transformSeed,
+		TransformRounds: h.transformRounds,
+	}
+	p.ComputedKey = p.Key.Compute()
+	return nil
 }
 
 func (h *header) read(r io.Reader) error {

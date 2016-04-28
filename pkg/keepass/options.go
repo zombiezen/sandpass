@@ -49,21 +49,28 @@ type Options struct {
 	StaticIVForTesting bool
 }
 
-func (opts *Options) newCryptParams() (*kdbcrypt.Params, error) {
-	kh, err := opts.getKeyFileHash()
-	if err != nil {
-		return nil, err
-	}
-	p := new(kdbcrypt.Params)
-	p.Key.Password = []byte(opts.getPassword())
-	p.Key.KeyFileHash = kh
-	p.Key.TransformRounds = uint32(opts.getKeyRounds())
+// initCryptParams creates kdbcrypt parameters for a new database.
+func (opts *Options) initCryptParams(p *kdbcrypt.Params) error {
 	p.Cipher = opts.getCipher()
 	r := reader{r: opts.getRand()}
+	if opts.staticIV() {
+		r.readFull(p.IV[:])
+		// Error checked after seeds, since this is uncommon to set in prod.
+	}
+	var err error
+	p.Key.KeyFileHash, err = opts.getKeyFileHash()
+	if err != nil {
+		return err
+	}
+	p.Key.Password = []byte(opts.getPassword())
+	p.Key.TransformRounds = uint32(opts.getKeyRounds())
 	r.readFull(p.Key.MasterSeed[:])
 	r.readFull(p.Key.TransformSeed[:])
-	r.readFull(p.IV[:])
-	return p, r.err
+	if r.err != nil {
+		return r.err
+	}
+	p.ComputedKey = p.Key.Compute()
+	return nil
 }
 
 func (opts *Options) getPassword() string {
@@ -101,6 +108,10 @@ func (opts *Options) getCipher() kdbcrypt.Cipher {
 		return 0
 	}
 	return opts.Cipher
+}
+
+func (opts *Options) staticIV() bool {
+	return opts != nil && opts.StaticIVForTesting
 }
 
 // Ciphers for Options

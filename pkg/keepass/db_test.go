@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"zombiezen.com/go/sandpass/pkg/fakerand"
+	"zombiezen.com/go/sandpass/pkg/kdbcrypt"
 )
 
 // sanitizeOptions returns a copy of opts that has defaults suitable for testing.
@@ -303,8 +304,8 @@ func debugDecrypt(data []byte, opts *Options) ([]byte, error) {
 		return nil, err
 	}
 	// TODO(light): keyfile
-	p, err := h.newCryptParams([]byte(opts.getPassword()), nil)
-	if err != nil {
+	p := new(kdbcrypt.Params)
+	if err := h.initCryptParams(p, []byte(opts.getPassword()), nil); err != nil {
 		return nil, err
 	}
 	return decryptDatabase(data[headerSize:], p, h.contentHash[:])
