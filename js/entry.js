@@ -13,18 +13,25 @@
 // limitations under the License.
 
 (function() {
-  var placeholder = '**********';
-  var showingPassword = false;
-  new Clipboard(document.getElementById('copypassword'));
-  document.getElementById('showpassword').addEventListener('click', function(e) {
-    showingPassword = !showingPassword;
-    var el = document.getElementById('password');
-    if (showingPassword) {
-      e.target.textContent = 'Hide';
-      el.textContent = el.dataset.value;
-    } else {
-      e.target.textContent = 'Show';
-      el.textContent = placeholder;
-    }
-  });
+  var onload = function() {
+    var placeholder = '**********';
+    var showingPassword = false;
+    new Clipboard(document.getElementById('copypassword'));
+    document.getElementById('showpassword').addEventListener('click', function(e) {
+      showingPassword = !showingPassword;
+      var el = document.getElementById('password');
+      if (showingPassword) {
+        e.target.textContent = 'Hide';
+        el.textContent = el.dataset.value;
+      } else {
+        e.target.textContent = 'Show';
+        el.textContent = placeholder;
+      }
+    });
+  };
+  if (document.readyState != 'loading') {
+    onload();
+  } else {
+    document.addEventListener('DOMContentLoaded', onload);
+  }
 })();
