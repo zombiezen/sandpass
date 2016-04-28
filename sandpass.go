@@ -113,6 +113,7 @@ func initHandlers() {
 	r.Handle("/fonts/Roboto-Bold.woff", serveStaticFile("third_party/roboto/Roboto-Bold.woff"))
 	r.Handle("/js/clipboard.js", serveStaticFile("third_party/clipboard.js/dist/clipboard.min.js"))
 	r.Handle("/js/entry.js", serveStaticFile("js/entry.js"))
+	r.Handle("/js/sandnav.js", serveStaticFile("js/sandnav.js"))
 
 	http.Handle("/", r)
 	router = r
