@@ -39,7 +39,7 @@ type sessionStorage struct {
 }
 
 // new creates a new session and token.
-func (ss *sessionStorage) new(data sessionData) *session {
+func (ss *sessionStorage) new(w http.ResponseWriter, data sessionData) *session {
 	buf := make([]byte, *tokenSize)
 	_, err := rand.Read(buf)
 	if err != nil {
@@ -56,7 +56,28 @@ func (ss *sessionStorage) new(data sessionData) *session {
 		ss.s = make(map[string]*session)
 	}
 	ss.s[tok] = s
+	http.SetCookie(w, &http.Cookie{
+		Name:  sessionCookie,
+		Value: s.token,
+		Path:  "/",
+	})
 	return s
+}
+
+func (ss *sessionStorage) dbFromRequest(w http.ResponseWriter, r *http.Request) (*keepass.Database, error) {
+	s := ss.fromRequest(r)
+	if !s.isValid() {
+		// Attempt to decrypt with no credentials, since that shouldn't require the
+		// user to enter credentials.
+		if db, err := openDatabase(nil); err == nil {
+			ss.new(w, sessionData{key: db.ComputedKey()})
+			return db, nil
+		}
+		return nil, errInvalidSession
+	}
+	return openDatabase(&keepass.Options{
+		ComputedKey: s.key,
+	})
 }
 
 func (ss *sessionStorage) fromRequest(r *http.Request) *session {
@@ -82,28 +103,4 @@ type session struct {
 
 func (s *session) isValid() bool {
 	return s != nil && time.Now().Before(s.expires)
-}
-
-func (s *session) attach(w http.ResponseWriter) {
-	if !s.isValid() {
-		return
-	}
-	http.SetCookie(w, &http.Cookie{
-		Name:  sessionCookie,
-		Value: s.token,
-		Path:  "/",
-	})
-}
-
-func (s *session) openDatabase() (*keepass.Database, error) {
-	if !s.isValid() {
-		// If the database isn't encrypted, then don't require a session.
-		if db, err := openDatabase(nil); err == nil {
-			return db, nil
-		}
-		return nil, errInvalidSession
-	}
-	return openDatabase(&keepass.Options{
-		ComputedKey: s.key,
-	})
 }

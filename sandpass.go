@@ -177,7 +177,7 @@ func index(w http.ResponseWriter, r *http.Request) error {
 func groupList(w http.ResponseWriter, r *http.Request) error {
 	mu.Lock()
 	defer mu.Unlock()
-	db, err := sessions.fromRequest(r).openDatabase()
+	db, err := sessions.dbFromRequest(w, r)
 	if err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func groupList(w http.ResponseWriter, r *http.Request) error {
 func viewGroup(w http.ResponseWriter, r *http.Request) error {
 	mu.Lock()
 	defer mu.Unlock()
-	db, err := sessions.fromRequest(r).openDatabase()
+	db, err := sessions.dbFromRequest(w, r)
 	if err != nil {
 		return err
 	}
@@ -205,7 +205,7 @@ func viewGroup(w http.ResponseWriter, r *http.Request) error {
 func viewEntry(w http.ResponseWriter, r *http.Request) error {
 	mu.Lock()
 	defer mu.Unlock()
-	db, err := sessions.fromRequest(r).openDatabase()
+	db, err := sessions.dbFromRequest(w, r)
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func viewEntry(w http.ResponseWriter, r *http.Request) error {
 func postEntryForm(w http.ResponseWriter, r *http.Request) error {
 	mu.Lock()
 	defer mu.Unlock()
-	db, err := sessions.fromRequest(r).openDatabase()
+	db, err := sessions.dbFromRequest(w, r)
 	if err != nil {
 		return err
 	}
@@ -250,7 +250,7 @@ func postEntry(w http.ResponseWriter, r *http.Request) error {
 	mu.Lock()
 	defer mu.Unlock()
 	var p requestParams
-	err := transaction(sessions.fromRequest(r), func(db *keepass.Database) error {
+	err := transaction(w, r, func(db *keepass.Database) error {
 		var err error
 		p, err = extractRequestParams(db, r)
 		if err != nil {
@@ -326,10 +326,9 @@ func newDB(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	sess := sessions.new(sessionData{
+	sessions.new(w, sessionData{
 		key: db.ComputedKey(),
 	})
-	sess.attach(w)
 	http.Redirect(w, r, "/groups", http.StatusSeeOther)
 	return nil
 }
@@ -405,10 +404,9 @@ func startSession(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	sess := sessions.new(sessionData{
+	sessions.new(w, sessionData{
 		key: db.ComputedKey(),
 	})
-	sess.attach(w)
 	http.Redirect(w, r, "/groups", http.StatusSeeOther)
 	return nil
 }
@@ -433,8 +431,8 @@ func readCredentials(req *http.Request) (password string, keyfile []byte, err er
 
 // transaction opens the database, modifies it, and writes it back to disk.
 // The caller must hold mu.
-func transaction(sess *session, f func(*keepass.Database) error) error {
-	db, err := sess.openDatabase()
+func transaction(w http.ResponseWriter, r *http.Request, f func(*keepass.Database) error) error {
+	db, err := sessions.dbFromRequest(w, r)
 	if err != nil {
 		return err
 	}
