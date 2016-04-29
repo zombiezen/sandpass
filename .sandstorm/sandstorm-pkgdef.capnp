@@ -22,11 +22,10 @@ const pkgdef :Spk.PackageDefinition = (
 
     metadata = (
       icons = (
-        # Various icons to represent the app in various contexts.
-        #appGrid = (svg = embed "path/to/appgrid-128x128.svg"),
-        #grain = (svg = embed "path/to/grain-24x24.svg"),
-        #market = (svg = embed "path/to/market-150x150.svg"),
-        #marketBig = (svg = embed "path/to/market-big-300x300.svg"),
+        appGrid = (svg = embed "../icons/appGrid.svg"),
+        appGrid = (svg = embed "../icons/appGrid.svg"),
+        grain = (svg = embed "../icons/grain.svg"),
+        market = (svg = embed "../icons/market.svg"),
       ),
 
       website = "https://github.com/zombiezen/sandpass",
