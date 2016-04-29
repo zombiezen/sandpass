@@ -1,0 +1,4 @@
+language: go
+go_import_path: zombiezen.com/go/sandpass
+go:
+- 1.6.2
