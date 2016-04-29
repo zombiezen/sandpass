@@ -1,3 +1,10 @@
+# v0.2.2
+
+* New icon (thanks @neynah)
+* Store derived key in sessions instead of password/keyfile (improves request
+  performance)
+* Security: generate random IV for every write
+
 # v0.2.1
 
 * Basic styling
