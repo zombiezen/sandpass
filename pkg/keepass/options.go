@@ -31,6 +31,10 @@ type Options struct {
 	// KeyFile is an optional binary file to encrypt/decrypt the database.
 	KeyFile io.Reader
 
+	// If ComputedKey is non-nil, it will be used instead of Password/KeyFile
+	// to decrypt an existing database.
+	ComputedKey kdbcrypt.ComputedKey
+
 	// Random number source, used for salts and ID generation.
 	// Defaults to crypto/rand.Reader.
 	Rand io.Reader

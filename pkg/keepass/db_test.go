@@ -103,6 +103,28 @@ func TestOpenDecrypt(t *testing.T) {
 		},
 		{
 			openParams: openParams{
+				db: "passwordonly.kdb",
+				opts: &Options{
+					ComputedKey: (&kdbcrypt.Key{
+						Password: []byte("swordfish"),
+						MasterSeed: [16]byte{
+							0xd4, 0x80, 0x93, 0xfd, 0x7a, 0xf7, 0x8c, 0x88,
+							0xef, 0x20, 0x14, 0xc6, 0x7e, 0x67, 0xd1, 0xcb,
+						},
+						TransformSeed: [32]byte{
+							0x13, 0x85, 0x9e, 0xdf, 0x26, 0x92, 0x5b, 0x40,
+							0x26, 0xde, 0x42, 0xf2, 0x16, 0xee, 0xa5, 0x25,
+							0xe5, 0xe4, 0xae, 0x4b, 0x8f, 0xf3, 0xe0, 0x51,
+							0x3c, 0x3d, 0x74, 0xa6, 0x19, 0x0f, 0xec, 0xea,
+						},
+						TransformRounds: 50000,
+					}).Compute(),
+				},
+			},
+			err: nil,
+		},
+		{
+			openParams: openParams{
 				db:   "passwordonly.kdb",
 				opts: &Options{Password: "123457"},
 			},
@@ -229,6 +251,28 @@ func TestWrite_Identity(t *testing.T) {
 			openParams: openParams{
 				db: "passwordonly.kdb",
 				opts: &Options{
+					ComputedKey: (&kdbcrypt.Key{
+						Password: []byte("swordfish"),
+						MasterSeed: [16]byte{
+							0xd4, 0x80, 0x93, 0xfd, 0x7a, 0xf7, 0x8c, 0x88,
+							0xef, 0x20, 0x14, 0xc6, 0x7e, 0x67, 0xd1, 0xcb,
+						},
+						TransformSeed: [32]byte{
+							0x13, 0x85, 0x9e, 0xdf, 0x26, 0x92, 0x5b, 0x40,
+							0x26, 0xde, 0x42, 0xf2, 0x16, 0xee, 0xa5, 0x25,
+							0xe5, 0xe4, 0xae, 0x4b, 0x8f, 0xf3, 0xe0, 0x51,
+							0x3c, 0x3d, 0x74, 0xa6, 0x19, 0x0f, 0xec, 0xea,
+						},
+						TransformRounds: 50000,
+					}).Compute(),
+					StaticIVForTesting: true,
+				},
+			},
+		},
+		{
+			openParams: openParams{
+				db: "passwordonly.kdb",
+				opts: &Options{
 					Password:           "swordfish",
 					StaticIVForTesting: false,
 				},
@@ -303,9 +347,15 @@ func debugDecrypt(data []byte, opts *Options) ([]byte, error) {
 	if err := h.read(r); err != nil {
 		return nil, err
 	}
-	// TODO(light): keyfile
 	p := new(kdbcrypt.Params)
-	if err := h.initCryptParams(p, []byte(opts.getPassword()), nil); err != nil {
+	var err error
+	if opts != nil && opts.ComputedKey != nil {
+		err = h.initComputedCryptParams(p, opts.ComputedKey)
+	} else {
+		// TODO(light): keyfile
+		err = h.initCryptParams(p, []byte(opts.getPassword()), nil)
+	}
+	if err != nil {
 		return nil, err
 	}
 	return decryptDatabase(data[headerSize:], p, h.contentHash[:])

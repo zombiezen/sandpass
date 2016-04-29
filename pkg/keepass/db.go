@@ -42,7 +42,7 @@ type Database struct {
 
 // init is called after cparams is filled in to initialize the database.
 func (db *Database) init(g []Group, e []Entry, opts *Options) {
-	// Clear uncomputed key material.
+	// Clear inputted key material.
 	if db.cparams.ComputedKey == nil {
 		panic("key should have been precomputed")
 	}
@@ -95,6 +95,11 @@ func (db *Database) Find(uuid [16]byte) *Entry {
 // FindGroup returns the group that matches the group or nil if not found.
 func (db *Database) FindGroup(id uint32) *Group {
 	return db.groups[id]
+}
+
+// ComputedKey returns the computed encryption key of the database.
+func (db *Database) ComputedKey() kdbcrypt.ComputedKey {
+	return db.cparams.ComputedKey
 }
 
 // Write encodes the database to a writer.
@@ -360,7 +365,11 @@ func Open(r io.Reader, opts *Options) (*Database, error) {
 
 	// TODO(light): try non-UTF8 encodings
 	db := new(Database)
-	err = h.initCryptParams(&db.cparams, []byte(opts.getPassword()), kh)
+	if opts != nil && opts.ComputedKey != nil {
+		err = h.initComputedCryptParams(&db.cparams, opts.ComputedKey)
+	} else {
+		err = h.initCryptParams(&db.cparams, []byte(opts.getPassword()), kh)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -747,6 +756,23 @@ func (h *header) initCryptParams(p *kdbcrypt.Params, password, keyFileHash []byt
 		TransformRounds: h.transformRounds,
 	}
 	p.ComputedKey = p.Key.Compute()
+	return nil
+}
+
+// initComputedCryptParams returns kdbcrypt parameters for an existing database with a computed key.
+func (h *header) initComputedCryptParams(p *kdbcrypt.Params, computed kdbcrypt.ComputedKey) error {
+	var err error
+	p.Cipher, err = h.cipher()
+	if err != nil {
+		return err
+	}
+	p.IV = h.encryptionIV
+	p.ComputedKey = computed
+	p.Key = kdbcrypt.Key{
+		MasterSeed:      h.masterSeed,
+		TransformSeed:   h.transformSeed,
+		TransformRounds: h.transformRounds,
+	}
 	return nil
 }
 
