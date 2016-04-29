@@ -2,3 +2,8 @@ language: go
 go_import_path: zombiezen.com/go/sandpass
 go:
 - 1.6.2
+
+# Disable automatic Godeps fetching by explicitly setting the install step,
+# since we're using vendor/
+install:
+- go get -t -v ./...
