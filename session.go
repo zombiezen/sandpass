@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"time"
 
+	"zombiezen.com/go/sandpass/pkg/kdbcrypt"
 	"zombiezen.com/go/sandpass/pkg/keepass"
 )
 
@@ -70,8 +71,7 @@ func (ss *sessionStorage) fromRequest(r *http.Request) *session {
 }
 
 type sessionData struct {
-	password string
-	keyfile  []byte
+	key kdbcrypt.ComputedKey
 }
 
 type session struct {
@@ -98,10 +98,12 @@ func (s *session) attach(w http.ResponseWriter) {
 func (s *session) openDatabase() (*keepass.Database, error) {
 	if !s.isValid() {
 		// If the database isn't encrypted, then don't require a session.
-		if db, err := openDatabase("", nil); err == nil {
+		if db, err := openDatabase(nil); err == nil {
 			return db, nil
 		}
 		return nil, errInvalidSession
 	}
-	return openDatabase(s.password, s.keyfile)
+	return openDatabase(&keepass.Options{
+		ComputedKey: s.key,
+	})
 }

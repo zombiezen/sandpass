@@ -155,7 +155,7 @@ func index(w http.ResponseWriter, r *http.Request) error {
 	exists := dbStorage.exists()
 	hasPassword := true
 	if exists {
-		if _, err := openDatabase("", nil); err == nil {
+		if _, err := openDatabase(nil); err == nil {
 			hasPassword = false
 		}
 	}
@@ -309,8 +309,9 @@ func newDB(w http.ResponseWriter, r *http.Request) error {
 			err: errors.New("database exists"),
 		}
 	}
+	var db *keepass.Database
 	if f == nil {
-		db, err := keepass.New(&keepass.Options{
+		db, err = keepass.New(&keepass.Options{
 			Password: password,
 			KeyFile:  optReader(keyfile),
 		})
@@ -321,13 +322,12 @@ func newDB(w http.ResponseWriter, r *http.Request) error {
 		if err := writeDatabase(db); err != nil {
 			return err
 		}
-	} else if err := importDB(f, password, keyfile); err != nil {
+	} else if db, err = importDB(f, password, keyfile); err != nil {
 		return err
 	}
 
 	sess := sessions.new(sessionData{
-		password: password,
-		keyfile:  keyfile,
+		key: db.ComputedKey(),
 	})
 	sess.attach(w)
 	http.Redirect(w, r, "/groups", http.StatusSeeOther)
@@ -355,36 +355,36 @@ func prepopulateDB(db *keepass.Database, now time.Time) {
 	}
 }
 
-func importDB(f io.ReadSeeker, password string, keyfile []byte) error {
-	_, err := keepass.Open(f, &keepass.Options{
+func importDB(f io.ReadSeeker, password string, keyfile []byte) (*keepass.Database, error) {
+	db, err := keepass.Open(f, &keepass.Options{
 		Password: password,
 		KeyFile:  optReader(keyfile),
 	})
 	if err == keepass.ErrHashMismatch {
-		return rootRedirectError{userError{
+		return nil, rootRedirectError{userError{
 			msg: "Unable to decrypt database. Check password and try again.",
 			err: fmt.Errorf("import database: %v", err),
 		}}
 	} else if err != nil {
-		return fmt.Errorf("import database: %v", err)
+		return nil, fmt.Errorf("import database: %v", err)
 	}
 	if _, err = f.Seek(0, os.SEEK_SET); err != nil {
-		return fmt.Errorf("import database: %v", err)
+		return nil, fmt.Errorf("import database: %v", err)
 	}
 
 	dbw, err := dbStorage.writer()
 	if err != nil {
-		return fmt.Errorf("import database: open writer: %v", err)
+		return nil, fmt.Errorf("import database: open writer: %v", err)
 	}
 	_, cpErr := io.Copy(dbw, f)
 	closeErr := dbw.Close()
 	if cpErr != nil {
-		return fmt.Errorf("import database: writing: %v", err)
+		return nil, fmt.Errorf("import database: writing: %v", err)
 	}
 	if closeErr != nil {
-		return fmt.Errorf("import database: writing: %v", err)
+		return nil, fmt.Errorf("import database: writing: %v", err)
 	}
-	return nil
+	return db, nil
 }
 
 func startSession(w http.ResponseWriter, r *http.Request) error {
@@ -395,7 +395,10 @@ func startSession(w http.ResponseWriter, r *http.Request) error {
 	mu.Lock()
 	defer mu.Unlock()
 
-	_, err = openDatabase(password, keyfile)
+	db, err := openDatabase(&keepass.Options{
+		Password: password,
+		KeyFile:  optReader(keyfile),
+	})
 	if isUserError(err) {
 		return rootRedirectError{err}
 	} else if err != nil {
@@ -403,8 +406,7 @@ func startSession(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	sess := sessions.new(sessionData{
-		password: password,
-		keyfile:  keyfile,
+		key: db.ComputedKey(),
 	})
 	sess.attach(w)
 	http.Redirect(w, r, "/groups", http.StatusSeeOther)
@@ -443,7 +445,7 @@ func transaction(sess *session, f func(*keepass.Database) error) error {
 	return writeDatabase(db)
 }
 
-func openDatabase(password string, keyfile []byte) (*keepass.Database, error) {
+func openDatabase(opts *keepass.Options) (*keepass.Database, error) {
 	if !dbStorage.exists() {
 		return nil, userError{
 			msg: "Database does not exist.",
@@ -454,10 +456,7 @@ func openDatabase(password string, keyfile []byte) (*keepass.Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	db, err := keepass.Open(r, &keepass.Options{
-		Password: password,
-		KeyFile:  optReader(keyfile),
-	})
+	db, err := keepass.Open(r, opts)
 	if err == keepass.ErrHashMismatch {
 		return nil, userError{
 			msg: "Could not decrypt database.  This means either the password you entered is incorrect or the database is corrupt.",
