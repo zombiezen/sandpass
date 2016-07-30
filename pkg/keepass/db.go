@@ -321,11 +321,19 @@ type Entry struct {
 	Password string
 	Notes    string
 	TimeInfo
-	Attachments map[string][]byte
+	Attachment struct {
+		Name string
+		Data []byte
+	}
 }
 
 func (e *Entry) isMetaStream() bool {
-	return e.Title == "Meta-Info" && e.Username == "SYSTEM" && e.URL == "$" && e.Icon == 0 && e.Notes != "" && len(e.Attachments) > 0 && len(e.Attachments["bin-stream"]) > 0
+	return e.Title == "Meta-Info" && e.Username == "SYSTEM" && e.URL == "$" && e.Icon == 0 && e.Notes != "" && e.Attachment.Name == "bin-stream"
+}
+
+// HasAttachment reports whether an entry has a file attachment.
+func (e *Entry) HasAttachment() bool {
+	return e.Attachment.Name != ""
 }
 
 type Icon uint32
@@ -540,7 +548,6 @@ func (g *Group) write(w io.Writer, level int) error {
 func (e *Entry) read(state *parseState, r io.Reader) error {
 	fr := newFieldReader(r)
 	var ferr error
-	var attachName string
 	for {
 		k, v, err := fr.next()
 		if err == io.EOF {
@@ -549,12 +556,12 @@ func (e *Entry) read(state *parseState, r io.Reader) error {
 			return err
 		}
 		if ferr == nil {
-			ferr = e.readField(state, &attachName, k, v)
+			ferr = e.readField(state, k, v)
 		}
 	}
 }
 
-func (e *Entry) readField(state *parseState, attachName *string, key uint16, value []byte) error {
+func (e *Entry) readField(state *parseState, key uint16, value []byte) error {
 	var err error
 	switch key {
 	case 0x0000:
@@ -595,14 +602,10 @@ func (e *Entry) readField(state *parseState, attachName *string, key uint16, val
 	case entryExpiryTimeField:
 		e.ExpiryTime, err = readDate("entry expiry time", value)
 	case entryAttachmentNameField:
-		*attachName = string(stripNull(value))
+		e.Attachment.Name = string(stripNull(value))
 	case entryAttachmentDataField:
-		if len(value) > 0 {
-			if e.Attachments == nil {
-				e.Attachments = make(map[string][]byte)
-			}
-			e.Attachments[*attachName] = value
-		}
+		e.Attachment.Data = make([]byte, len(value))
+		copy(e.Attachment.Data, value)
 	default:
 		return fmt.Errorf("keepass: unknown entry field %04x", key)
 	}
@@ -624,14 +627,12 @@ func (e *Entry) write(w io.Writer, gid uint32) error {
 	writeDateField(ww, entryLastModificationTimeField, e.LastModificationTime)
 	writeDateField(ww, entryLastAccessTimeField, e.LastAccessTime)
 	writeDateField(ww, entryExpiryTimeField, e.ExpiryTime)
-	for name, data := range e.Attachments {
-		writeStringField(ww, entryAttachmentNameField, name)
-		writeField(ww, entryAttachmentDataField, data)
-	}
-	if !e.isMetaStream() {
-		// TODO(light): it may be the case that this is needed for zero or more requirements.
+	if e.HasAttachment() {
+		writeStringField(ww, entryAttachmentNameField, e.Attachment.Name)
+		writeField(ww, entryAttachmentDataField, e.Attachment.Data)
+	} else {
 		writeStringField(ww, entryAttachmentNameField, "")
-		writeField(ww, entryAttachmentDataField, []byte{})
+		writeField(ww, entryAttachmentDataField, nil)
 	}
 	writeField(ww, fieldTerminator, []byte{})
 	return ww.err

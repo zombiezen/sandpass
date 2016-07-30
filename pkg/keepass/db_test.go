@@ -271,6 +271,15 @@ func TestWrite_Identity(t *testing.T) {
 		},
 		{
 			openParams: openParams{
+				db: "files.kdb",
+				opts: &Options{
+					Password:           "swordfish",
+					StaticIVForTesting: true,
+				},
+			},
+		},
+		{
+			openParams: openParams{
 				db: "passwordonly.kdb",
 				opts: &Options{
 					Password:           "swordfish",
