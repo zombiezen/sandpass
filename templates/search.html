@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<title>Search {{.Query}} - Sandpass</title>
+<link rel="stylesheet" href="/style.css">
+<div class="pageContainer">
+  <div class="pageHeader">
+    <nav class="breadcrumb">
+      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+    </nav>
+    <h1 class="pageTitle">Search</h1>
+  </div>
+  <div class="pageBody">
+    <form method="GET" action="/search">
+      <input type="search" name="q" value="{{.Query}}">
+      <input type="submit" value="Search">
+    </form>
+    {{if .Results}}
+    <ul>
+      {{range .Results}}
+      <li><a href="/groups/{{.GroupID}}/entry/{{.Entry.UUID}}">{{.Entry.Title}}</a></li>
+      {{end}}
+    </ul>
+    {{else if .Query}}
+    <p>No results.</p>
+    {{end}}
+  </div>
+</div>
+<script src="/js/sandnav.js"></script>

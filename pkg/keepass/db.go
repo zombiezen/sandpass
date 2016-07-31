@@ -102,6 +102,22 @@ func (db *Database) ComputedKey() kdbcrypt.ComputedKey {
 	return db.cparams.ComputedKey
 }
 
+// Entries returns a list of all entries in the database.
+func (db *Database) Entries() []*Entry {
+	e := make([]*Entry, len(db.entries))
+	copy(e, db.entries)
+	return e
+}
+
+// Groups returns a list of all groups in the database.
+func (db *Database) Groups() []*Group {
+	g := make([]*Group, 0, len(db.groups))
+	for _, gg := range db.groups {
+		g = append(g, gg)
+	}
+	return g
+}
+
 // Write encodes the database to a writer.
 func (db *Database) Write(w io.Writer) error {
 	if !db.staticIV {

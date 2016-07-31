@@ -97,6 +97,7 @@ func initHandlers() {
 
 	// App handlers
 	r.Handle("/", checkPerm("read", appHandler(index)))
+	r.Handle("/search", checkPerm("read", appHandler(handleSearch)))
 	r.Handle("/groups", checkPerm("read", appHandler(groupList)))
 	r.Handle("/groups/{gid}", checkPerm("read", appHandler(viewGroup)))
 	r.Handle("/groups/{gid}/newentry", checkPerm("write", appHandler(postEntryForm))).Methods("GET")
