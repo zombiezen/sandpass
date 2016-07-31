@@ -74,6 +74,7 @@ html, body {
 
 .pageBody {
   background: white;
+  min-height: 150px;
   padding: 8px 16px;
 }
 
