@@ -107,6 +107,7 @@ func initHandlers() {
 	r.Handle("/groups/{gid}/entry/{uuid}/edit", checkPerm("write", appHandler(postEntry))).Methods("POST")
 	r.Handle("/_/newdb", checkPerm("write", appHandler(newDB))).Methods("POST")
 	r.Handle("/_/start", checkPerm("write", appHandler(startSession))).Methods("POST")
+	r.Handle("/_/pwgen", appHandler(pwgen)).Methods("GET")
 
 	// Static files
 	r.Handle("/style.css", serveStaticFile("style.css"))
