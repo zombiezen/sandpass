@@ -114,6 +114,7 @@ func initHandlers() {
 	r.Handle("/fonts/Roboto-Regular.woff", serveStaticFile("third_party/roboto/Roboto-Regular.woff"))
 	r.Handle("/fonts/Roboto-Bold.woff", serveStaticFile("third_party/roboto/Roboto-Bold.woff"))
 	r.Handle("/js/clipboard.js", serveStaticFile("third_party/clipboard.js/dist/clipboard.min.js"))
+	r.Handle("/js/editentry.js", serveStaticFile("js/editentry.js"))
 	r.Handle("/js/entry.js", serveStaticFile("js/entry.js"))
 	r.Handle("/js/sandnav.js", serveStaticFile("js/sandnav.js"))
 
