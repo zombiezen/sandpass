@@ -80,7 +80,7 @@
     req.open('GET', u, true /* async */);
     req.onload = function() {
       if (this.status >= 200 && this.status < 400) {
-        document.getElementById('passwordField').value = this.response;
+        document.getElementById('entryPassword').value = this.response;
         setError('');
       } else {
         setError(this.response);

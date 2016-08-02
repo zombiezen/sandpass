@@ -84,26 +84,32 @@ html, body {
 }
 
 .entryFields {
-  display: table;
+  margin-top: 16px;
 }
 
-.entryFieldGroup {
-  display: table-row;
+.entryFieldGroup, .pwgenFieldGroup {
+  margin-bottom: 8px;
 }
 
-.entryFieldName {
-  display: table-cell;
+.entryFieldName, .pwgenFieldName {
+  display: block;
   font-weight: bold;
-  padding-right: 16px;
-  vertical-align: top;
-}
-
-.entryField {
-  display: table-cell;
-  vertical-align: top;
+  line-height: 0.95;
 }
 
 .entryFieldValue {
   font: 14px/24px monospace;
-  white-space: pre;
+  white-space: pre-wrap;
+}
+
+.entryField {
+  max-width: 400px;
+}
+
+.entryFieldTextbox {
+  width: 100%;
+}
+
+.pwgenOptions {
+  margin: 16px 0;
 }
