@@ -26,6 +26,7 @@ lib/x86_64-linux-gnu/libtinfo.so.5
 lib/x86_64-linux-gnu/libtinfo.so.5.9
 lib64/ld-linux-x86-64.so.2
 opt/app/.sandstorm/launcher.sh
+opt/app/js/editentry.js
 opt/app/js/entry.js
 opt/app/js/sandnav.js
 opt/app/sandpass
@@ -37,6 +38,8 @@ opt/app/templates/group.html
 opt/app/templates/grouplist.html
 opt/app/templates/groups.html
 opt/app/templates/index.html
+opt/app/templates/search.html
+opt/app/templates/searchbox.html
 opt/app/templates/time.html
 opt/app/third_party/clipboard.js/dist/clipboard.min.js
 opt/app/third_party/roboto/Roboto-Bold.woff
