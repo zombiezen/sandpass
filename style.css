@@ -94,7 +94,7 @@ html, body {
 .entryFieldName, .pwgenFieldName {
   display: block;
   font-weight: bold;
-  line-height: 0.95;
+  line-height: 1.2;
 }
 
 .entryFieldValue {
