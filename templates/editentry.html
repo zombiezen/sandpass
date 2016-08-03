@@ -24,10 +24,12 @@
     </h1>
   </div>
   <div class="pageBody">
+    {{if not .Entry.UUID.IsZero}}
     <div class="actionBar">
       <button data-href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}">View</button>
       <button data-href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}/delete">Delete</button>
     </div>
+    {{end}}
     <form method="POST">
       <div class="entryFields">
         <div class="entryFieldGroup">
