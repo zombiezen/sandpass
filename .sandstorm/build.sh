@@ -5,10 +5,11 @@ set -euo pipefail
 # process - transforming the code in your repository into the collection of files
 # which can actually run the service in production
 cd /opt/app
-export GOPATH=/tmp/gopath
-if [[ ! -h $GOPATH/src/zombiezen.com/go/sandpass ]]; then
-  mkdir -p $GOPATH/src/zombiezen.com/go/
-  ln -s /opt/app $GOPATH/src/zombiezen.com/go/sandpass
+export GOPATH=/gopath
+if [[ ! -h "$GOPATH/src/zombiezen.com/go/sandpass" ]]; then
+  mkdir -p "$GOPATH/src/zombiezen.com/go/"
+  ln -s /opt/app "$GOPATH/src/zombiezen.com/go/sandpass"
 fi
-/usr/local/go/bin/go build -o sandpass zombiezen.com/go/sandpass
+/usr/local/go/bin/go install zombiezen.com/go/sandpass
+cp --archive "$GOPATH/bin/sandpass" sandpass
 exit 0

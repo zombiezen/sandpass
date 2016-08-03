@@ -11,3 +11,7 @@ if ! [[ -f /usr/local/go/VERSION && "$(cat /usr/local/go/VERSION)" == "$GOVERSIO
   curl -sSL "https://storage.googleapis.com/golang/${GOVERSION}.linux-amd64.tar.gz" | \
     tar -C /usr/local -xzf -
 fi
+if [[ ! -d /gopath ]]; then
+  mkdir /gopath
+  chown vagrant:vagrant /gopath
+fi
