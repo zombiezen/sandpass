@@ -19,6 +19,9 @@ const (
 	upperLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	lowerLetters = "abcdefghijklmnopqrstuvwxyz"
 	digits       = "0123456789"
+	specialChars = `!"#$%&'()*+,-./:;<=>?@[\]^_{|}~` + "`"
+
+	lookalikeCharacters = "0OIl1|"
 )
 
 func pwgen(w http.ResponseWriter, r *http.Request) error {
@@ -35,6 +38,10 @@ func pwgen(w http.ResponseWriter, r *http.Request) error {
 			return nil
 		}
 		set := passwordCharset(r.Form)
+		if len(set) == 0 {
+			http.Error(w, "password character set is empty", http.StatusBadRequest)
+			return nil
+		}
 		password, err = generatePasswordFromSet(int(n), set)
 		if err != nil {
 			return err
@@ -62,10 +69,21 @@ func pwgen(w http.ResponseWriter, r *http.Request) error {
 
 func passwordCharset(form url.Values) []byte {
 	set := make([]byte, 0, len(upperLetters)+len(lowerLetters)+len(digits))
-	// TODO(light): add/subtract from set from form
-	set = append(set, upperLetters...)
-	set = append(set, lowerLetters...)
-	set = append(set, digits...)
+	if formFieldBool(form, "uppercase") {
+		set = append(set, upperLetters...)
+	}
+	if formFieldBool(form, "lowercase") {
+		set = append(set, lowerLetters...)
+	}
+	if formFieldBool(form, "digits") {
+		set = append(set, digits...)
+	}
+	if formFieldBool(form, "special") {
+		set = append(set, specialChars...)
+	}
+	if formFieldBool(form, "excludeLookalike") {
+		set = subtractCharset(set, lookalikeCharacters)
+	}
 	return set
 }
 
@@ -147,4 +165,19 @@ func randInt(r io.Reader, n int) (int, error) {
 		return 0, err
 	}
 	return int(i.Int64()), nil
+}
+
+func subtractCharset(set []byte, sub string) []byte {
+	n := 0
+	for _, c := range set {
+		if strings.IndexByte(sub, c) == -1 {
+			set[n] = c
+			n++
+		}
+	}
+	return set[:n]
+}
+
+func formFieldBool(form url.Values, name string) bool {
+	return form.Get(name) != ""
 }
