@@ -40,6 +40,7 @@ var (
 	listen       = flag.String("listen", "[::]:8080", "address to listen on")
 	dbPath       = flag.String("db", "", "path to database")
 	templatesDir = flag.String("templates_dir", "templates", "path to template directory")
+	sessionGC    = flag.Duration("session_gc", 1 * time.Minute, "frequency at which sessions are to be cleared from memory after expiring")
 )
 
 // Read-only globals
@@ -72,6 +73,7 @@ func main() {
 		os.Exit(1)
 	}
 	initHandlers()
+	go gcSessions()
 	if err := http.ListenAndServe(*listen, nil); err != nil {
 		log.Println("listen:", err)
 		os.Exit(1)
@@ -125,6 +127,19 @@ func initHandlers() {
 
 	http.Handle("/", r)
 	router = r
+}
+
+func gcSessions() {
+	tick := time.Tick(*sessionGC)
+	for {
+		<-tick
+		mu.Lock()
+		n := sessions.clearInvalid()
+		mu.Unlock()
+		if n > 0 {
+			log.Printf("cleared %d invalid sessions", n)
+		}
+	}
 }
 
 type requestParams struct {

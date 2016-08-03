@@ -92,13 +92,33 @@ func (ss *sessionStorage) fromRequest(r *http.Request) *session {
 }
 
 func (ss *sessionStorage) clear() {
-	for k := range ss.s {
-		delete(ss.s, k)
+	for id, s := range ss.s {
+		s.clear()
+		delete(ss.s, id)
 	}
+}
+
+func (ss *sessionStorage) clearInvalid() int {
+	n := 0
+	for id, s := range ss.s {
+		if !s.isValid() {
+			s.clear()
+			delete(ss.s, id)
+			n++
+		}
+	}
+	return n
 }
 
 type sessionData struct {
 	key kdbcrypt.ComputedKey
+}
+
+// clear zeroes out the session's data as a weak defense against RAM compromise.
+func (data *sessionData) clear() {
+	for i := range data.key {
+		data.key[i] = 0
+	}
 }
 
 type session struct {
