@@ -6,7 +6,9 @@
     <h1 class="pageTitle noBreadcrumb">Groups</h1>
   </div>
   <div class="pageBody">
-    {{template "searchbox.html"}}
+    <div class="actionBar">
+      {{template "searchbox.html"}}
+    </div>
     {{template "grouplist.html" .DB.Root}}
   </div>
 </div>

@@ -9,10 +9,12 @@
     <h1 class="pageTitle">Search</h1>
   </div>
   <div class="pageBody">
-    <form method="GET" action="/search">
-      <input type="search" name="q" value="{{.Query}}">
-      <input type="submit" value="Search">
-    </form>
+    <div class="actionBar">
+      <form method="GET" action="/search">
+        <input type="search" name="q" value="{{.Query}}">
+        <input type="submit" value="Search">
+      </form>
+    </div>
     {{if .Results}}
     <ul>
       {{range .Results}}

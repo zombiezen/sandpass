@@ -50,6 +50,11 @@ html, body {
   padding: 8px 16px;
 }
 
+.searchbox {
+  display: inline-block;
+  margin-right: 16px;
+}
+
 .breadcrumbLink:link {
   color: white;
   text-decoration: none;

@@ -15,7 +15,7 @@
     <p>Are you sure you want to delete "{{.Entry.Title}}"?  This action cannot be undone.</p>
     <div>
       <form method="POST">
-        <a href="/groups/{{.Group.ID}}{{if not .Entry.UUID.IsZero}}/entry/{{.Entry.UUID}}{{end}}">Cancel</a>
+        <button data-href="/groups/{{.Group.ID}}{{if not .Entry.UUID.IsZero}}/entry/{{.Entry.UUID}}{{end}}">Cancel</button>
         <input type="submit" value="Delete">
       </form>
     </div>

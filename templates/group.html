@@ -9,9 +9,9 @@
     <h1 class="pageTitle">{{.Name}}</h1>
   </div>
   <div class="pageBody">
-    {{template "searchbox.html"}}
-    <div>
-      <a href="/groups/{{.ID}}/newentry">New Entry</a>
+    <div class="actionBar">
+      {{template "searchbox.html"}}
+      <button data-href="/groups/{{.ID}}/newentry">New Entry</button>
     </div>
     <ul>
       {{range sortEntries .Entries}}

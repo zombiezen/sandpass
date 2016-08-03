@@ -14,6 +14,7 @@
 
 (function() {
   var onload = function() {
+    // Update Sandstorm frame.
     window.parent.postMessage({'setPath': location.pathname + location.hash}, '*');
     window.parent.postMessage({'setTitle': document.title}, '*');
   };
@@ -22,4 +23,12 @@
   } else {
     document.addEventListener('DOMContentLoaded', onload);
   }
+
+  var onclick = function(e) {
+    if (e.target.tagName == 'BUTTON' && e.target.dataset.href) {
+      e.preventDefault();
+      window.location.href = e.target.dataset.href;
+    }
+  };
+  document.addEventListener('click', onclick);
 })();
