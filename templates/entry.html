@@ -13,8 +13,9 @@
   </div>
   <div class="pageBody">
     {{with .Entry}}
-    <div>
+    <div class="actionBar">
       <a href="/groups/{{$.Group.ID}}/entry/{{.UUID}}/edit">Edit</a>
+      <a href="/groups/{{$.Group.ID}}/entry/{{.UUID}}/delete">Delete</a>
     </div>
     <div class="entryFields">
       {{with .Username}}

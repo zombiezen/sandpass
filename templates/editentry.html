@@ -24,6 +24,10 @@
     </h1>
   </div>
   <div class="pageBody">
+    <div class="actionBar">
+      <a href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}">View</a>
+      <a href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}/delete">Delete</a>
+    </div>
     <form method="POST">
       <div class="entryFields">
         <div class="entryFieldGroup">

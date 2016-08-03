@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<title>Delete {{.Entry.Title}} - Sandpass</title>
+<link rel="stylesheet" href="/style.css">
+<div class="pageContainer">
+  <div class="pageHeader">
+    <nav class="breadcrumb">
+      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+      {{with .Group}}
+      <a href="/groups/{{.ID}}" class="breadcrumbLink">{{.Name}}</a> &#x279C;
+      {{end}}
+    </nav>
+    <h1 class="pageTitle">Delete {{.Entry.Title}}</h1>
+  </div>
+  <div class="pageBody">
+    <p>Are you sure you want to delete "{{.Entry.Title}}"?  This action cannot be undone.</p>
+    <div>
+      <form method="POST">
+        <a href="/groups/{{.Group.ID}}{{if not .Entry.UUID.IsZero}}/entry/{{.Entry.UUID}}{{end}}">Cancel</a>
+        <input type="submit" value="Delete">
+      </form>
+    </div>
+  </div>
+</div>
+<script src="/js/sandnav.js"></script>

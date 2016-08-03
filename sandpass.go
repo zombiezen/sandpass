@@ -99,12 +99,15 @@ func initHandlers() {
 	r.Handle("/", checkPerm("read", appHandler(index)))
 	r.Handle("/search", checkPerm("read", appHandler(handleSearch)))
 	r.Handle("/groups", checkPerm("read", appHandler(groupList)))
-	r.Handle("/groups/{gid}", checkPerm("read", appHandler(viewGroup)))
+	r.Handle("/groups/{gid}", checkPerm("read", appHandler(viewGroup))).Name("viewGroup").Methods("GET")
 	r.Handle("/groups/{gid}/newentry", checkPerm("write", appHandler(postEntryForm))).Methods("GET")
 	r.Handle("/groups/{gid}/newentry", checkPerm("write", appHandler(postEntry))).Methods("POST")
-	r.Handle("/groups/{gid}/entry/{uuid}", checkPerm("read", appHandler(viewEntry))).Name("viewEntry")
+	r.Handle("/groups/{gid}/entry/{uuid}", checkPerm("read", appHandler(viewEntry))).Name("viewEntry").Methods("GET")
+	r.Handle("/groups/{gid}/entry/{uuid}", checkPerm("write", appHandler(deleteEntry))).Methods("DELETE")
 	r.Handle("/groups/{gid}/entry/{uuid}/edit", checkPerm("write", appHandler(postEntryForm))).Methods("GET")
 	r.Handle("/groups/{gid}/entry/{uuid}/edit", checkPerm("write", appHandler(postEntry))).Methods("POST")
+	r.Handle("/groups/{gid}/entry/{uuid}/delete", checkPerm("write", appHandler(confirmDeleteEntry))).Methods("GET")
+	r.Handle("/groups/{gid}/entry/{uuid}/delete", checkPerm("write", appHandler(deleteEntry))).Methods("POST")
 	r.Handle("/_/newdb", checkPerm("write", appHandler(newDB))).Methods("POST")
 	r.Handle("/_/start", checkPerm("write", appHandler(startSession))).Methods("POST")
 	r.Handle("/_/pwgen", appHandler(pwgen)).Methods("GET")
@@ -283,6 +286,54 @@ func postEntry(w http.ResponseWriter, r *http.Request) error {
 	u, err := router.GetRoute("viewEntry").URL(
 		"gid", strconv.FormatUint(uint64(p.g.ID), 10),
 		"uuid", p.e.UUID.String())
+	if err != nil {
+		return err
+	}
+	http.Redirect(w, r, u.String(), http.StatusSeeOther)
+	return nil
+}
+
+func confirmDeleteEntry(w http.ResponseWriter, r *http.Request) error {
+	mu.Lock()
+	defer mu.Unlock()
+	db, err := sessions.dbFromRequest(w, r)
+	if err != nil {
+		return err
+	}
+	params, err := extractRequestParams(db, r)
+	if err != nil {
+		return err
+	}
+	return tmpl.ExecuteTemplate(w, "deleteentry.html", struct {
+		Entry *keepass.Entry
+		Group *keepass.Group
+	}{
+		Entry: params.e,
+		Group: params.g,
+	})
+}
+
+func deleteEntry(w http.ResponseWriter, r *http.Request) error {
+	mu.Lock()
+	defer mu.Unlock()
+	var p requestParams
+	err := transaction(w, r, func(db *keepass.Database) error {
+		var err error
+		p, err = extractRequestParams(db, r)
+		if err != nil {
+			return err
+		}
+		p.g.RemoveEntry(p.e)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	if r.Method == "DELETE" {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+	u, err := router.GetRoute("viewGroup").URL("gid", strconv.FormatUint(uint64(p.g.ID), 10))
 	if err != nil {
 		return err
 	}
