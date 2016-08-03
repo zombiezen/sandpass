@@ -78,6 +78,15 @@ func (st *storage) writer() (io.WriteCloser, error) {
 	return syncWriter{st.f}, nil
 }
 
+// remove deletes the file on disk.
+func (st *storage) remove() error {
+	if err := os.Remove(st.path); err != nil {
+		return err
+	}
+	st.f = nil
+	return nil
+}
+
 func (st *storage) Close() error {
 	if st.f == nil {
 		return nil

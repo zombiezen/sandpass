@@ -108,6 +108,8 @@ func initHandlers() {
 	r.Handle("/groups/{gid}/entry/{uuid}/edit", checkPerm("write", appHandler(postEntry))).Methods("POST")
 	r.Handle("/groups/{gid}/entry/{uuid}/delete", checkPerm("write", appHandler(confirmDeleteEntry))).Methods("GET")
 	r.Handle("/groups/{gid}/entry/{uuid}/delete", checkPerm("write", appHandler(deleteEntry))).Methods("POST")
+	r.Handle("/nuke", checkPerm("write", appHandler(confirmNuke))).Methods("GET")
+	r.Handle("/nuke", checkPerm("write", appHandler(nuke))).Methods("POST")
 	r.Handle("/_/newdb", checkPerm("write", appHandler(newDB))).Methods("POST")
 	r.Handle("/_/start", checkPerm("write", appHandler(startSession))).Methods("POST")
 	r.Handle("/_/pwgen", appHandler(pwgen)).Methods("GET")
@@ -338,6 +340,21 @@ func deleteEntry(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	http.Redirect(w, r, u.String(), http.StatusSeeOther)
+	return nil
+}
+
+func confirmNuke(w http.ResponseWriter, r *http.Request) error {
+	return tmpl.ExecuteTemplate(w, "nuke.html", nil)
+}
+
+func nuke(w http.ResponseWriter, r *http.Request) error {
+	mu.Lock()
+	defer mu.Unlock()
+	if err := dbStorage.remove(); err != nil {
+		return err
+	}
+	sessions.clear()
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return nil
 }
 

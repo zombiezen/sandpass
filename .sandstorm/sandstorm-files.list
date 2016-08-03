@@ -39,6 +39,7 @@ opt/app/templates/group.html
 opt/app/templates/grouplist.html
 opt/app/templates/groups.html
 opt/app/templates/index.html
+opt/app/templates/nuke.html
 opt/app/templates/search.html
 opt/app/templates/searchbox.html
 opt/app/templates/time.html

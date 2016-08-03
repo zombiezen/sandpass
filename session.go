@@ -91,6 +91,12 @@ func (ss *sessionStorage) fromRequest(r *http.Request) *session {
 	return ss.s[c.Value]
 }
 
+func (ss *sessionStorage) clear() {
+	for k := range ss.s {
+		delete(ss.s, k)
+	}
+}
+
 type sessionData struct {
 	key kdbcrypt.ComputedKey
 }
