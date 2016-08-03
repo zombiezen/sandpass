@@ -4,5 +4,10 @@
 # - https://docs.sandstorm.io/en/latest/vagrant-spk/customizing/#setupsh
 
 set -euo pipefail
-curl -sSL https://storage.googleapis.com/golang/go1.6.2.linux-amd64.tar.gz | \
-  tar -C /usr/local -xzf -
+GOVERSION='go1.6.3'
+if ! [[ -f /usr/local/go/VERSION && "$(cat /usr/local/go/VERSION)" == "$GOVERSION" ]]; then
+  echo "Downloading $GOVERSION"
+  rm -rf /usr/local/go
+  curl -sSL "https://storage.googleapis.com/golang/${GOVERSION}.linux-amd64.tar.gz" | \
+    tar -C /usr/local -xzf -
+fi
