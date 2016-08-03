@@ -28,7 +28,7 @@ lib64/ld-linux-x86-64.so.2
 opt/app/.sandstorm/launcher.sh
 opt/app/js/editentry.js
 opt/app/js/entry.js
-opt/app/js/sandnav.js
+opt/app/js/init.js
 opt/app/sandpass
 opt/app/style.css
 opt/app/templates

@@ -119,7 +119,7 @@ func initHandlers() {
 	r.Handle("/js/clipboard.js", serveStaticFile("third_party/clipboard.js/dist/clipboard.min.js"))
 	r.Handle("/js/editentry.js", serveStaticFile("js/editentry.js"))
 	r.Handle("/js/entry.js", serveStaticFile("js/entry.js"))
-	r.Handle("/js/sandnav.js", serveStaticFile("js/sandnav.js"))
+	r.Handle("/js/init.js", serveStaticFile("js/init.js"))
 
 	http.Handle("/", r)
 	router = r
