@@ -31,34 +31,34 @@
     </div>
     {{end}}
     <form method="POST">
-      <div class="entryFields">
-        <div class="entryFieldGroup">
-          <label for="entryTitle" class="entryFieldName">Title</label>
-          <div class="entryField">
-            <input type="text" name="title" value="{{.Entry.Title}}" id="entryTitle" class="entryFieldTextbox">
+      <div class="sandpassFields">
+        <div class="sandpassFieldGroup">
+          <label for="entryTitle" class="sandpassFieldName">Title</label>
+          <div class="sandpassField">
+            <input type="text" name="title" value="{{.Entry.Title}}" id="entryTitle" class="sandpassFieldTextbox">
           </div>
         </div>
-        <div class="entryFieldGroup">
-          <label for="entryUsername" class="entryFieldName">Username</label>
-          <div class="entryField">
-            <input type="text" name="username" value="{{.Entry.Username}}" id="entryUsername" class="entryFieldTextbox">
+        <div class="sandpassFieldGroup">
+          <label for="entryUsername" class="sandpassFieldName">Username</label>
+          <div class="sandpassField">
+            <input type="text" name="username" value="{{.Entry.Username}}" id="entryUsername" class="sandpassFieldTextbox">
           </div>
         </div>
-        <div class="entryFieldGroup">
-          <label for="entryPassword" class="entryFieldName">Password</label>
-          <div class="entryField">
-            <input type="text" name="password" value="{{.Entry.Password}}" id="entryPassword" class="entryFieldTextbox">
+        <div class="sandpassFieldGroup">
+          <label for="entryPassword" class="sandpassFieldName">Password</label>
+          <div class="sandpassField">
+            <input type="text" name="password" value="{{.Entry.Password}}" id="entryPassword" class="sandpassFieldTextbox">
           </div>
         </div>
-        <div class="entryFieldGroup">
-          <label for="entryURL" class="entryFieldName">URL</label>
-          <div class="entryField">
-            <input type="url" name="url" value="{{.Entry.URL}}" id="entryURL" class="entryFieldTextbox">
+        <div class="sandpassFieldGroup">
+          <label for="entryURL" class="sandpassFieldName">URL</label>
+          <div class="sandpassField">
+            <input type="url" name="url" value="{{.Entry.URL}}" id="entryURL" class="sandpassFieldTextbox">
           </div>
         </div>
-        <div class="entryFieldGroup">
-          <label for="entryNotes" class="entryFieldName">Notes</label>
-          <div class="entryField">
+        <div class="sandpassFieldGroup">
+          <label for="entryNotes" class="sandpassFieldName">Notes</label>
+          <div class="sandpassField">
             <textarea name="notes" rows="6" cols="40" id="entryNotes">{{.Entry.Notes}}</textarea>
           </div>
         </div>
@@ -82,52 +82,52 @@
         </div>
       </div>
       <div id="normalModeOptions" class="pwgenOptions">
-        <div class="pwgenFieldGroup">
-          <label for="normalN" class="pwgenFieldName">Length</label>
-          <div class="pwgenField">
+        <div class="sandpassFieldGroup">
+          <label for="normalN" class="sandpassFieldName">Length</label>
+          <div class="sandpassField">
             <input type="number" id="normalN" name="n" min="1" max="200" value="20">
           </div>
         </div>
-        <div class="pwgenFieldGroup">
-          <div class="pwgenField">
+        <div class="sandpassFieldGroup">
+          <div class="sandpassField">
             <input type="checkbox" id="normalUppercase" name="uppercase" checked>
             <label for="normalUppercase">Uppercase letters</label>
           </div>
         </div>
-        <div class="pwgenFieldGroup">
-          <div class="pwgenField">
+        <div class="sandpassFieldGroup">
+          <div class="sandpassField">
             <input type="checkbox" id="normalLowercase" name="lowercase" checked>
             <label for="normalLowercase">Lowercase letters</label>
           </div>
         </div>
-        <div class="pwgenFieldGroup">
-          <div class="pwgenField">
+        <div class="sandpassFieldGroup">
+          <div class="sandpassField">
             <input type="checkbox" id="normalDigits" name="digits" checked>
             <label for="normalDigits">Digits</label>
           </div>
         </div>
-        <div class="pwgenFieldGroup">
-          <div class="pwgenField">
+        <div class="sandpassFieldGroup">
+          <div class="sandpassField">
             <input type="checkbox" id="normalSpecial" name="special">
             <label for="normalSpecial">Special characters</label>
           </div>
         </div>
-        <div class="pwgenFieldGroup">
-          <div class="pwgenField">
+        <div class="sandpassFieldGroup">
+          <div class="sandpassField">
             <input type="checkbox" id="normalExcludeLookalike" name="excludeLookalike">
             <label for="normalExcludeLookalike">Exclude lookalike characters</label>
           </div>
         </div>
       </div>
       <div id="passphraseModeOptions" class="pwgenOptions" hidden>
-        <div class="pwgenFieldGroup">
-          <label for="passphraseN" class="pwgenFieldName">Number of Words</label>
-          <div class="pwgenField">
+        <div class="sandpassFieldGroup">
+          <label for="passphraseN" class="sandpassFieldName">Number of Words</label>
+          <div class="sandpassField">
             <input type="number" id="passphraseN" name="n" min="1" max="50" value="5">
           </div>
         </div>
-        <div class="pwgenFieldGroup">
-          <div class="pwgenField">
+        <div class="sandpassFieldGroup">
+          <div class="sandpassField">
             <input type="checkbox" id="passphrasePossessives" name="possessives">
             <label for="passphrasePossessives">Include possessives</label>
           </div>

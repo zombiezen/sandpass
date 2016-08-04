@@ -17,18 +17,18 @@
       <button data-href="/groups/{{$.Group.ID}}/entry/{{.UUID}}/edit">Edit</button>
       <button data-href="/groups/{{$.Group.ID}}/entry/{{.UUID}}/delete">Delete</button>
     </div>
-    <div class="entryFields">
+    <div class="sandpassFields">
       {{with .Username}}
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">Username</div>
-        <div class="entryField entryFieldValue">{{.}}</div>
+      <div class="sandpassFieldGroup">
+        <div class="sandpassFieldName">Username</div>
+        <div class="sandpassField sandpassFieldValue">{{.}}</div>
       </div>
       {{end}}
       {{with .Password}}
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">Password</div>
-        <div class="entryField">
-          <span id="password" class="entryFieldValue" data-value="{{.}}">**********</span>
+      <div class="sandpassFieldGroup">
+        <div class="sandpassFieldName">Password</div>
+        <div class="sandpassField">
+          <span id="password" class="sandpassFieldValue" data-value="{{.}}">**********</span>
           <div>
             <button id="showpassword">Show</button>
             <button id="copypassword" data-clipboard-text="{{.}}">Copy</button>
@@ -37,29 +37,29 @@
       </div>
       {{end}}
       {{with .URL}}
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">URL</div>
-        <div class="entryField entryFieldValue"><a href="{{.}}" target="_blank">{{.}}</a></div>
+      <div class="sandpassFieldGroup">
+        <div class="sandpassFieldName">URL</div>
+        <div class="sandpassField sandpassFieldValue"><a href="{{.}}" target="_blank">{{.}}</a></div>
       </div>
       {{end}}
       {{with .Notes}}
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">Notes</div>
-        <div class="entryField entryFieldValue">{{.}}</div>
+      <div class="sandpassFieldGroup">
+        <div class="sandpassFieldName">Notes</div>
+        <div class="sandpassField sandpassFieldValue">{{.}}</div>
       </div>
       {{end}}
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">Created</div>
-        <div class="entryField entryFieldValue">{{template "time.html" .CreationTime}}</div>
+      <div class="sandpassFieldGroup">
+        <div class="sandpassFieldName">Created</div>
+        <div class="sandpassField sandpassFieldValue">{{template "time.html" .CreationTime}}</div>
       </div>
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">Last Modified</div>
-        <div class="entryField entryFieldValue">{{template "time.html" .LastModificationTime}}</div>
+      <div class="sandpassFieldGroup">
+        <div class="sandpassFieldName">Last Modified</div>
+        <div class="sandpassField sandpassFieldValue">{{template "time.html" .LastModificationTime}}</div>
       </div>
       {{if not .ExpiryTime.IsZero}}
-      <div class="entryFieldGroup">
-        <div class="entryFieldName">Expires</div>
-        <div class="entryField entryFieldValue">{{template "time.html" .ExpiryTime}}</div>
+      <div class="sandpassFieldGroup">
+        <div class="sandpassFieldName">Expires</div>
+        <div class="sandpassField sandpassFieldValue">{{template "time.html" .ExpiryTime}}</div>
       </div>
       {{end}}
     </div>

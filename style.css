@@ -88,30 +88,30 @@ html, body {
   color: #730a0a;
 }
 
-.entryFields {
+.sandpassFields {
   margin-top: 16px;
 }
 
-.entryFieldGroup, .pwgenFieldGroup {
+.sandpassFieldGroup {
   margin-bottom: 8px;
 }
 
-.entryFieldName, .pwgenFieldName {
+.sandpassFieldName {
   display: block;
   font-weight: bold;
   line-height: 1.2;
 }
 
-.entryFieldValue {
+.sandpassFieldValue {
   font: 14px/24px monospace;
   white-space: pre-wrap;
 }
 
-.entryField {
+.sandpassField {
   max-width: 400px;
 }
 
-.entryFieldTextbox {
+.sandpassFieldTextbox {
   width: 100%;
 }
 
