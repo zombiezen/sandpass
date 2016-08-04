@@ -18,7 +18,7 @@
     {{if .Results}}
     <ul>
       {{range .Results}}
-      <li><a href="/groups/{{.GroupID}}/entry/{{.Entry.UUID}}">{{.Entry.Title}}</a></li>
+      <li><a href="/groups/{{.Entry.Parent.ID}}/entry/{{.Entry.UUID}}">{{.Entry.Title}}</a></li>
       {{end}}
     </ul>
     {{else if .Query}}

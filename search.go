@@ -21,12 +21,10 @@ import (
 	textsearch "golang.org/x/text/search"
 
 	"zombiezen.com/go/sandpass/pkg/keepass"
-	"zombiezen.com/go/sandpass/pkg/uuids"
 )
 
 type searchResult struct {
-	Entry   *keepass.Entry
-	GroupID uint32
+	Entry *keepass.Entry
 }
 
 func handleSearch(w http.ResponseWriter, r *http.Request) error {
@@ -55,21 +53,5 @@ func search(db *keepass.Database, query string) []searchResult {
 			results = append(results, searchResult{Entry: e})
 		}
 	}
-	for _, g := range db.Groups() {
-		for i := range results {
-			if groupContains(g, results[i].Entry.UUID) {
-				results[i].GroupID = g.ID
-			}
-		}
-	}
 	return results
-}
-
-func groupContains(g *keepass.Group, uuid uuids.UUID) bool {
-	for i := 0; i < g.NEntries(); i++ {
-		if g.Entry(i).UUID == uuid {
-			return true
-		}
-	}
-	return false
 }

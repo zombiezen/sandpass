@@ -109,15 +109,6 @@ func (db *Database) Entries() []*Entry {
 	return e
 }
 
-// Groups returns a list of all groups in the database.
-func (db *Database) Groups() []*Group {
-	g := make([]*Group, 0, len(db.groups))
-	for _, gg := range db.groups {
-		g = append(g, gg)
-	}
-	return g
-}
-
 // Write encodes the database to a writer.
 func (db *Database) Write(w io.Writer) error {
 	if !db.staticIV {
@@ -229,6 +220,28 @@ type Group struct {
 	entries []*Entry
 }
 
+// Parent returns the containing group or nil if the group is the
+// database's root.
+func (g *Group) Parent() *Group {
+	if g == g.db.root {
+		return nil
+	}
+	if g.db.root.indexGroup(g) != -1 {
+		return g.db.root
+	}
+	for _, gg := range g.db.groups {
+		if gg.indexGroup(g) != -1 {
+			return gg
+		}
+	}
+	panic("group without parent")
+}
+
+// IsRoot reports whether the group is the database's root group.
+func (g *Group) IsRoot() bool {
+	return g == g.db.root
+}
+
 // Groups returns the groups as a slice.
 func (g *Group) Groups() []*Group {
 	gg := make([]*Group, len(g.groups))
@@ -257,19 +270,25 @@ func (g *Group) NewSubgroup() *Group {
 }
 
 // RemoveSubgroup removes sub from the group's children.
-func (g *Group) RemoveSubgroup(sub *Group) {
-	i, n := 0, len(g.groups)
-	for ; i < n; i++ {
-		if g.groups[i] == sub {
-			break
-		}
-	}
-	if i >= n {
-		return
+func (g *Group) RemoveSubgroup(sub *Group) error {
+	i := g.indexGroup(sub)
+	if i == -1 {
+		return fmt.Errorf("keepass: removing group %s (id=%d): not in group %s (id=%d)", sub.Name, sub.ID, g.Name, g.ID)
 	}
 	copy(g.groups[i:], g.groups[i+1:])
-	g.groups[n-1] = nil
-	g.groups = g.groups[:n-1]
+	g.groups[len(g.groups)-1] = nil
+	g.groups = g.groups[:len(g.groups)-1]
+	sub.db = nil
+	return nil
+}
+
+func (g *Group) indexGroup(sub *Group) int {
+	for i := range g.groups {
+		if g.groups[i] == sub {
+			return i
+		}
+	}
+	return -1
 }
 
 // Entries returns the entries in the group as a slice.
@@ -297,19 +316,22 @@ func (g *Group) NewEntry() (*Entry, error) {
 	if err != nil {
 		return nil, err
 	}
-	e := &Entry{UUID: id}
+	e := &Entry{UUID: id, db: g.db}
 	g.entries = append(g.entries, e)
 	g.db.entries = append(g.db.entries, e)
 	return e, nil
 }
 
 // RemoveEntry removes e from the group's entries.
-func (g *Group) RemoveEntry(e *Entry) {
+func (g *Group) RemoveEntry(e *Entry) error {
 	var ok bool
 	g.entries, ok = removeEntry(g.entries, e)
-	if ok {
-		g.db.entries, _ = removeEntry(g.db.entries, e)
+	if !ok {
+		return fmt.Errorf("keepass: removing entry %s (id=%v): not in group %s (id=%d)", e.Title, e.UUID, g.Name, g.ID)
 	}
+	g.db.entries, _ = removeEntry(g.db.entries, e)
+	e.db = nil
+	return nil
 }
 
 func removeEntry(entries []*Entry, e *Entry) ([]*Entry, bool) {
@@ -341,6 +363,20 @@ type Entry struct {
 		Name string
 		Data []byte
 	}
+
+	db *Database
+}
+
+// Parent returns the entry's group.
+func (e *Entry) Parent() *Group {
+	for _, g := range e.db.groups {
+		for _, ee := range g.entries {
+			if ee == e {
+				return g
+			}
+		}
+	}
+	panic("entry without parent")
 }
 
 func (e *Entry) isMetaStream() bool {
@@ -427,6 +463,7 @@ func parse(db *Database, r io.Reader, numGroups, numEntries int, opts *Options) 
 	}
 	entries := make([]Entry, numEntries)
 	for i := range entries {
+		entries[i].db = db
 		err := entries[i].read(&state, r)
 		if err != nil {
 			return nil, err
