@@ -205,9 +205,9 @@ func groupList(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return tmpl.ExecuteTemplate(w, "groups.html", struct {
-		DB *keepass.Database
+		Root *keepass.Group
 	}{
-		DB: db,
+		Root: db.Root(),
 	})
 }
 
