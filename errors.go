@@ -83,6 +83,22 @@ func (notFoundError) StatusCode() int {
 	return http.StatusNotFound
 }
 
+type invalidParentError struct {
+	val string
+}
+
+func (e invalidParentError) Error() string {
+	return "invalid parent " + e.val
+}
+
+func (e invalidParentError) UserError() string {
+	return e.Error()
+}
+
+func (e invalidParentError) StatusCode() int {
+	return http.StatusNotFound
+}
+
 type rootRedirectError struct {
 	err error
 }

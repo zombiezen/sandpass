@@ -271,6 +271,9 @@ func (g *Group) NewSubgroup() *Group {
 
 // RemoveSubgroup removes sub from the group's children.
 func (g *Group) RemoveSubgroup(sub *Group) error {
+	if len(sub.entries) != 0 || len(sub.groups) != 0 {
+		return fmt.Errorf("keepass: removing group %s (id=%d): not empty", sub.Name, sub.ID)
+	}
 	i := g.indexGroup(sub)
 	if i == -1 {
 		return fmt.Errorf("keepass: removing group %s (id=%d): not in group %s (id=%d)", sub.Name, sub.ID, g.Name, g.ID)

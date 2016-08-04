@@ -12,6 +12,10 @@
     <div class="actionBar">
       {{template "searchbox.html"}}
       <button data-href="/groups/{{.ID}}/newentry">New Entry</button>
+      <button data-href="/newgroup?parent={{.ID}}">New Group</button>
+      <button data-href="/groups/{{.ID}}/edit">Edit Group</button>
+      <button data-href="/groups/{{.ID}}/delete"
+        {{- if or .NEntries .NGroups}} disabled{{end}}>Delete Group</button>
     </div>
     <ul>
       {{range sortEntries .Entries}}

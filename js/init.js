@@ -25,7 +25,7 @@
   }
 
   var onclick = function(e) {
-    if (e.target.tagName == 'BUTTON' && e.target.dataset.href) {
+    if (e.target.tagName == 'BUTTON' && e.target.dataset.href && !e.target.disabled) {
       e.preventDefault();
       window.location.href = e.target.dataset.href;
     }

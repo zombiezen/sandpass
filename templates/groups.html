@@ -8,6 +8,7 @@
   <div class="pageBody">
     <div class="actionBar">
       {{template "searchbox.html"}}
+      <button data-href="/newgroup?parent=root">New Group</button>
       <button data-href="/nuke">Delete Database</button>
     </div>
     {{template "grouplist.html" .Root}}

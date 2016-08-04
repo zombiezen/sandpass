@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -100,8 +101,15 @@ func initHandlers() {
 	// App handlers
 	r.Handle("/", checkPerm("read", appHandler(index)))
 	r.Handle("/search", checkPerm("read", appHandler(handleSearch)))
-	r.Handle("/groups", checkPerm("read", appHandler(groupList)))
+	r.Handle("/groups", checkPerm("read", appHandler(groupList))).Name("listGroups")
+	r.Handle("/newgroup", checkPerm("write", appHandler(postGroupForm))).Methods("GET")
+	r.Handle("/newgroup", checkPerm("write", appHandler(postGroup))).Methods("POST")
 	r.Handle("/groups/{gid}", checkPerm("read", appHandler(viewGroup))).Name("viewGroup").Methods("GET")
+	r.Handle("/groups/{gid}", checkPerm("write", appHandler(deleteGroup))).Methods("DELETE")
+	r.Handle("/groups/{gid}/edit", checkPerm("write", appHandler(postGroupForm))).Methods("GET")
+	r.Handle("/groups/{gid}/edit", checkPerm("write", appHandler(postGroup))).Methods("POST")
+	r.Handle("/groups/{gid}/delete", checkPerm("write", appHandler(confirmDeleteGroup))).Methods("GET")
+	r.Handle("/groups/{gid}/delete", checkPerm("write", appHandler(deleteGroup))).Methods("POST")
 	r.Handle("/groups/{gid}/newentry", checkPerm("write", appHandler(postEntryForm))).Methods("GET")
 	r.Handle("/groups/{gid}/newentry", checkPerm("write", appHandler(postEntry))).Methods("POST")
 	r.Handle("/groups/{gid}/entry/{uuid}", checkPerm("read", appHandler(viewEntry))).Name("viewEntry").Methods("GET")
@@ -351,6 +359,139 @@ func deleteEntry(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 	u, err := router.GetRoute("viewGroup").URL("gid", strconv.FormatUint(uint64(p.g.ID), 10))
+	if err != nil {
+		return err
+	}
+	http.Redirect(w, r, u.String(), http.StatusSeeOther)
+	return nil
+}
+
+func postGroupForm(w http.ResponseWriter, r *http.Request) error {
+	mu.Lock()
+	defer mu.Unlock()
+	db, err := sessions.dbFromRequest(w, r)
+	if err != nil {
+		return err
+	}
+	rp, err := extractRequestParams(db, r)
+	if err != nil {
+		return err
+	}
+	var params struct {
+		Group    *keepass.Group
+		Parent   *keepass.Group
+		NewGroup bool
+	}
+	if rp.g == nil {
+		params.Group = new(keepass.Group)
+		parent, err := extractParentGroup(db, r.Form)
+		if err != nil {
+			return err
+		}
+		params.Parent = parent
+		params.NewGroup = true
+	} else {
+		params.Group = rp.g
+		params.Parent = rp.g.Parent()
+	}
+	return tmpl.ExecuteTemplate(w, "editgroup.html", params)
+}
+
+func postGroup(w http.ResponseWriter, r *http.Request) error {
+	now := time.Now()
+	mu.Lock()
+	defer mu.Unlock()
+	var p requestParams
+	err := transaction(w, r, func(db *keepass.Database) error {
+		var err error
+		p, err = extractRequestParams(db, r)
+		if err != nil {
+			return err
+		}
+		newParent, err := extractParentGroup(db, r.Form)
+		if err != nil {
+			return err
+		}
+		if p.g == nil {
+			p.g = newParent.NewSubgroup()
+			p.g.TimeInfo = keepass.TimeInfo{
+				CreationTime:   now,
+				LastAccessTime: now,
+			}
+		} else if parent := p.g.Parent(); newParent != parent {
+			// TODO(#15): reparent
+			return errors.New("reparenting not implemented")
+		}
+		p.g.Name = r.FormValue("name")
+		p.g.LastModificationTime = now
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	u, err := router.GetRoute("viewGroup").URL("gid", strconv.FormatUint(uint64(p.g.ID), 10))
+	if err != nil {
+		return err
+	}
+	http.Redirect(w, r, u.String(), http.StatusSeeOther)
+	return nil
+}
+
+func extractParentGroup(db *keepass.Database, form url.Values) (*keepass.Group, error) {
+	f := form.Get("parent")
+	if f == "root" {
+		return db.Root(), nil
+	}
+	id, err := strconv.ParseUint(f, 10, 32)
+	if err != nil {
+		return nil, invalidParentError{f}
+	}
+	g := db.FindGroup(uint32(id))
+	if g == nil {
+		return nil, invalidParentError{f}
+	}
+	return g, nil
+}
+
+func confirmDeleteGroup(w http.ResponseWriter, r *http.Request) error {
+	mu.Lock()
+	defer mu.Unlock()
+	db, err := sessions.dbFromRequest(w, r)
+	if err != nil {
+		return err
+	}
+	params, err := extractRequestParams(db, r)
+	if err != nil {
+		return err
+	}
+	return tmpl.ExecuteTemplate(w, "deletegroup.html", struct {
+		Group *keepass.Group
+	}{
+		Group: params.g,
+	})
+}
+
+func deleteGroup(w http.ResponseWriter, r *http.Request) error {
+	mu.Lock()
+	defer mu.Unlock()
+	var p requestParams
+	err := transaction(w, r, func(db *keepass.Database) error {
+		var err error
+		p, err = extractRequestParams(db, r)
+		if err != nil {
+			return err
+		}
+		parent := p.g.Parent()
+		return parent.RemoveSubgroup(p.g)
+	})
+	if err != nil {
+		return err
+	}
+	if r.Method == "DELETE" {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+	u, err := router.GetRoute("listGroups").URL()
 	if err != nil {
 		return err
 	}

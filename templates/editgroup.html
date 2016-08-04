@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<title>
+  {{- if .NewGroup -}}
+  New Group
+  {{- else -}}
+  Edit {{.Group.Name}}
+  {{- end}} - Sandpass
+</title>
+<link rel="stylesheet" href="/style.css">
+<div class="pageContainer">
+  <div class="pageHeader">
+    <nav class="breadcrumb">
+      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+    </nav>
+    <h1 class="pageTitle">
+      {{if .NewGroup}}
+      New Group
+      {{else}}
+      Edit {{.Group.Name}}
+      {{end}}
+    </h1>
+  </div>
+  <div class="pageBody">
+    {{if not .NewGroup}}
+    <div class="actionBar">
+      <button data-href="/groups/{{.Group.ID}}">View</button>
+      <button data-href="/groups/{{.Group.ID}}/delete"
+        {{- if or .Group.NEntries .Group.NGroups}}disabled{{end}}>Delete</button>
+    </div>
+    {{end}}
+    <form method="POST">
+      <input type="hidden" name="parent" value="{{if .Parent.IsRoot}}root{{else}}{{.Parent.ID}}{{end}}">
+      <div class="sandpassFields">
+        <div class="sandpassFieldGroup">
+          <label for="groupName" class="sandpassFieldName">Name</label>
+          <div class="sandpassField">
+            <input type="text" name="name" value="{{.Group.Name}}" id="groupName" class="sandpassFieldTextbox">
+          </div>
+        </div>
+      </div>
+      <div>
+        <button data-href="/groups{{if not .NewGroup}}/{{.Group.ID}}{{end}}">Cancel</button>
+        <input type="submit" value="Save">
+      </div>
+    </form>
+  </div>
+</div>
+<script src="/js/init.js"></script>

@@ -33,7 +33,9 @@ opt/app/sandpass
 opt/app/style.css
 opt/app/templates
 opt/app/templates/deleteentry.html
+opt/app/templates/deletegroup.html
 opt/app/templates/editentry.html
+opt/app/templates/editgroup.html
 opt/app/templates/entry.html
 opt/app/templates/group.html
 opt/app/templates/grouplist.html
