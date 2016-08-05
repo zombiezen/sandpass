@@ -90,6 +90,99 @@ func TestNewSubgroup_DifferentIDs(t *testing.T) {
 	}
 }
 
+func TestEntitySetParent(t *testing.T) {
+	const (
+		rootGroup = iota + 1
+		groupA
+		groupB
+	)
+	tests := []struct {
+		name string
+		src  int
+		dst  int
+		err  bool
+	}{
+		{name: "move A to B", src: groupA, dst: groupB},
+		{name: "move B to A", src: groupB, dst: groupA},
+		{name: "move A to root fails", src: groupA, dst: rootGroup, err: true},
+		{name: "move A to A", src: groupA, dst: groupA},
+	}
+	for _, test := range tests {
+		db, err := New(sanitizeOptions(nil))
+		if err != nil {
+			t.Errorf("%s: New: %v", test.name, err)
+			continue
+		}
+		a := db.Root().NewSubgroup()
+		a.Name = "Group A"
+		b := db.Root().NewSubgroup()
+		b.Name = "Group B"
+		groups := [...]*Group{
+			rootGroup: db.Root(),
+			groupA:    a,
+			groupB:    b,
+		}
+		groupString := func(g *Group) string {
+			switch g {
+			case nil:
+				return "<nil>"
+			case groups[rootGroup]:
+				return "root"
+			case groups[groupA]:
+				return "Group A"
+			case groups[groupB]:
+				return "Group B"
+			default:
+				return "<unknown>"
+			}
+		}
+		ent, err := groups[test.src].NewEntry()
+		if err != nil {
+			t.Errorf("%s: NewEntry: %v", test.name, err)
+			continue
+		}
+
+		err = ent.SetParent(groups[test.dst])
+		if err != nil && !test.err {
+			t.Errorf("%s: SetParent returned error: %v", test.name, err)
+		} else if err == nil && test.err {
+			t.Errorf("%s: SetParent did not return an error", test.name)
+		}
+		if err != nil || test.src == test.dst {
+			// Entry should not have moved.
+			if !hasEntry(groups[test.src], ent) {
+				t.Errorf("%s: entry is missing from original parent", test.name)
+			}
+			if test.src != test.dst && hasEntry(groups[test.dst], ent) {
+				t.Errorf("%s: entry is present in new parent", test.name)
+			}
+			if p := ent.Parent(); p != groups[test.src] {
+				t.Errorf("%s: entry parent = %s; want %s", test.name, groupString(p), groupString(groups[test.src]))
+			}
+		} else {
+			// Entry should have moved.
+			if hasEntry(groups[test.src], ent) {
+				t.Errorf("%s: entry is present in original parent", test.name)
+			}
+			if !hasEntry(groups[test.dst], ent) {
+				t.Errorf("%s: entry is missing from new parent", test.name)
+			}
+			if p := ent.Parent(); p != groups[test.dst] {
+				t.Errorf("%s: entry parent = %s; want %s", test.name, groupString(p), groupString(groups[test.dst]))
+			}
+		}
+	}
+}
+
+func hasEntry(g *Group, e *Entry) bool {
+	for i := 0; i < g.NEntries(); i++ {
+		if g.Entry(i) == e {
+			return true
+		}
+	}
+	return false
+}
+
 func TestOpenDecrypt(t *testing.T) {
 	tests := []struct {
 		openParams

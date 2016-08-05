@@ -382,6 +382,23 @@ func (e *Entry) Parent() *Group {
 	panic("entry without parent")
 }
 
+// SetParent moves the entry to another group.
+func (e *Entry) SetParent(parent *Group) error {
+	for _, ee := range parent.entries {
+		if ee == e {
+			// Already the parent.
+			return nil
+		}
+	}
+	if parent.IsRoot() {
+		return fmt.Errorf("keepass: cannot set parent of entry %q (id=%v) to root", e.Title, e.UUID)
+	}
+	old := e.Parent()
+	old.entries, _ = removeEntry(old.entries, e)
+	parent.entries = append(parent.entries, e)
+	return nil
+}
+
 func (e *Entry) isMetaStream() bool {
 	return e.Title == "Meta-Info" && e.Username == "SYSTEM" && e.URL == "$" && e.Icon == 0 && e.Notes != "" && e.Attachment.Name == "bin-stream"
 }
