@@ -39,18 +39,13 @@ func sanitizeOptions(opts *Options) *Options {
 	return o
 }
 
-func newTestDB(t *testing.T, opts *Options) *Database {
-	db, err := New(sanitizeOptions(opts))
+func TestNew(t *testing.T) {
+	db, err := New(sanitizeOptions(&Options{
+		Password: "swordfish",
+	}))
 	if err != nil {
 		t.Fatal("New:", err)
 	}
-	return db
-}
-
-func TestNew(t *testing.T) {
-	db := newTestDB(t, &Options{
-		Password: "swordfish",
-	})
 
 	if n := db.Root().NGroups(); n > 0 {
 		t.Errorf("db.Root().NGroups() = %d; want 0", n)
@@ -61,7 +56,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewEntry_DifferentIDs(t *testing.T) {
-	db := newTestDB(t, nil)
+	db, err := New(sanitizeOptions(nil))
+	if err != nil {
+		t.Fatal("New:", err)
+	}
 	g := db.Root().NewSubgroup()
 
 	e1, err := g.NewEntry()
@@ -79,7 +77,10 @@ func TestNewEntry_DifferentIDs(t *testing.T) {
 }
 
 func TestNewSubgroup_DifferentIDs(t *testing.T) {
-	db := newTestDB(t, nil)
+	db, err := New(sanitizeOptions(nil))
+	if err != nil {
+		t.Fatal("New:", err)
+	}
 
 	g1 := db.Root().NewSubgroup()
 	g2 := db.Root().NewSubgroup()
@@ -169,10 +170,13 @@ func TestWrite_New(t *testing.T) {
 	opts := &Options{
 		Password: "swordfish",
 	}
-	db := newTestDB(t, opts)
+	db, err := New(sanitizeOptions(opts))
+	if err != nil {
+		t.Fatal("New:", err)
+	}
 	buf := new(bytes.Buffer)
 
-	err := db.Write(buf)
+	err = db.Write(buf)
 
 	if err != nil {
 		t.Fatal("Write:", err)
@@ -193,7 +197,10 @@ func TestWrite_GroupAndEntry(t *testing.T) {
 	opts := &Options{
 		Password: "swordfish",
 	}
-	db := newTestDB(t, opts)
+	db, err := New(sanitizeOptions(opts))
+	if err != nil {
+		t.Fatal("New:", err)
+	}
 	buf := new(bytes.Buffer)
 
 	{
@@ -205,7 +212,7 @@ func TestWrite_GroupAndEntry(t *testing.T) {
 		}
 		e.Title = "My User"
 	}
-	err := db.Write(buf)
+	err = db.Write(buf)
 
 	if err != nil {
 		t.Fatal("Write:", err)
