@@ -13,7 +13,7 @@
     <p>Are you sure you want to delete "{{.Group.Name}}"?  This action cannot be undone.</p>
     <div>
       <form method="POST">
-        <button data-href="/groups/{{.Group.ID}}">Cancel</button>
+        <button type="button" data-href="/groups/{{.Group.ID}}">Cancel</button>
         <input type="submit" value="Delete">
       </form>
     </div>

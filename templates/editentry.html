@@ -64,7 +64,7 @@
         </div>
       </div>
       <div>
-        <button data-href="/groups/{{.Group.ID}}{{if not .Entry.UUID.IsZero}}/entry/{{.Entry.UUID}}{{end}}">Cancel</button>
+        <button type="button" data-href="/groups/{{.Group.ID}}{{if not .Entry.UUID.IsZero}}/entry/{{.Entry.UUID}}{{end}}">Cancel</button>
         <input type="submit" value="Save">
       </div>
     </form>
