@@ -183,6 +183,118 @@ func hasEntry(g *Group, e *Entry) bool {
 	return false
 }
 
+func TestGroupSetParent(t *testing.T) {
+	const (
+		rootGroup = iota + 1
+		groupA
+		groupAA
+		groupAAA
+		groupB
+	)
+	srcs := [...]int{
+		groupA:   rootGroup,
+		groupAA:  groupA,
+		groupAAA: groupAA,
+		groupB:   rootGroup,
+	}
+
+	tests := []struct {
+		name string
+		grp  int
+		dst  int
+		err  bool
+	}{
+		{name: "move A under B", grp: groupA, dst: groupB},
+		{name: "move root under root", grp: rootGroup, dst: rootGroup, err: true},
+		{name: "move root under A", grp: rootGroup, dst: groupA, err: true},
+		{name: "move A under root (no-op)", grp: groupA, dst: rootGroup},
+		{name: "move A under A", grp: groupA, dst: groupA, err: true},
+		{name: "move A under AA", grp: groupA, dst: groupAA, err: true},
+		{name: "move A under AAA", grp: groupA, dst: groupAAA, err: true},
+		{name: "move AA under root", grp: groupAA, dst: rootGroup},
+	}
+	for _, test := range tests {
+		db, err := New(sanitizeOptions(nil))
+		if err != nil {
+			t.Errorf("%s: New: %v", test.name, err)
+			continue
+		}
+		a := db.Root().NewSubgroup()
+		a.Name = "Group A"
+		aa := a.NewSubgroup()
+		aa.Name = "Group AA"
+		aaa := aa.NewSubgroup()
+		aaa.Name = "Group AAA"
+		b := db.Root().NewSubgroup()
+		b.Name = "Group B"
+		groups := [...]*Group{
+			rootGroup: db.Root(),
+			groupA:    a,
+			groupAA:   aa,
+			groupAAA:  aaa,
+			groupB:    b,
+		}
+		groupString := func(g *Group) string {
+			switch g {
+			case nil:
+				return "<nil>"
+			case groups[rootGroup]:
+				return "root"
+			case groups[groupA]:
+				return "Group A"
+			case groups[groupAA]:
+				return "Group AA"
+			case groups[groupAAA]:
+				return "Group AAA"
+			case groups[groupB]:
+				return "Group B"
+			default:
+				return "<unknown>"
+			}
+		}
+
+		g, src := groups[test.grp], srcs[test.grp]
+		err = g.SetParent(groups[test.dst])
+		if err != nil && !test.err {
+			t.Errorf("%s: SetParent returned error: %v", test.name, err)
+		} else if err == nil && test.err {
+			t.Errorf("%s: SetParent did not return an error", test.name)
+		}
+		if err != nil || src == test.dst {
+			// Entry should not have moved.
+			if src != 0 && !hasSubgroup(groups[src], g) {
+				t.Errorf("%s: group is missing from original parent", test.name)
+			}
+			if src != test.dst && hasSubgroup(groups[test.dst], g) {
+				t.Errorf("%s: group is present in new parent", test.name)
+			}
+			if p := g.Parent(); p != groups[src] {
+				t.Errorf("%s: group parent = %s; want %s", test.name, groupString(p), groupString(groups[src]))
+			}
+		} else {
+			// Entry should have moved.
+			if src != 0 && hasSubgroup(groups[src], g) {
+				t.Errorf("%s: group is present in original parent", test.name)
+			}
+			if !hasSubgroup(groups[test.dst], g) {
+				t.Errorf("%s: group is missing from new parent", test.name)
+			}
+			if p := g.Parent(); p != groups[test.dst] {
+				t.Errorf("%s: group parent = %s; want %s", test.name, groupString(p), groupString(groups[test.dst]))
+			}
+		}
+	}
+}
+
+func hasSubgroup(g, sub *Group) bool {
+	for i := 0; i < g.NGroups(); i++ {
+		if g.Group(i) == sub {
+			return true
+		}
+	}
+	return false
+}
+
 func TestOpenDecrypt(t *testing.T) {
 	tests := []struct {
 		openParams

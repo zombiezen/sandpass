@@ -226,15 +226,54 @@ func (g *Group) Parent() *Group {
 	if g == g.db.root {
 		return nil
 	}
-	if g.db.root.indexGroup(g) != -1 {
+	if indexGroup(g.db.root.groups, g) != -1 {
 		return g.db.root
 	}
 	for _, gg := range g.db.groups {
-		if gg.indexGroup(g) != -1 {
+		if indexGroup(gg.groups, g) != -1 {
 			return gg
 		}
 	}
 	panic("group without parent")
+}
+
+// SetParent moves the group to another group.
+func (g *Group) SetParent(parent *Group) error {
+	if g == parent {
+		return fmt.Errorf("keepass: can't set group parent to itself")
+	}
+	for _, gg := range parent.groups {
+		if gg == g {
+			// Already the parent.
+			return nil
+		}
+	}
+	if g.IsRoot() {
+		return fmt.Errorf("keepass: can't set parent on root")
+	}
+	if parent.hasAncestor(g) {
+		return fmt.Errorf("keepass: can't create parent cycle")
+	}
+
+	old := g.Parent()
+	old.groups, _ = removeGroup(old.groups, g)
+	parent.groups = append(parent.groups, g)
+	return nil
+}
+
+func (g *Group) hasAncestor(ancestor *Group) bool {
+	parents := make(map[*Group]*Group, len(g.db.groups))
+	for _, gg := range g.db.groups {
+		for _, sub := range gg.groups {
+			parents[sub] = gg
+		}
+	}
+	for curr := parents[g]; curr != nil; curr = parents[curr] {
+		if curr == ancestor {
+			return true
+		}
+	}
+	return false
 }
 
 // IsRoot reports whether the group is the database's root group.
@@ -274,24 +313,33 @@ func (g *Group) RemoveSubgroup(sub *Group) error {
 	if len(sub.entries) != 0 || len(sub.groups) != 0 {
 		return fmt.Errorf("keepass: removing group %s (id=%d): not empty", sub.Name, sub.ID)
 	}
-	i := g.indexGroup(sub)
-	if i == -1 {
+	var ok bool
+	g.groups, ok = removeGroup(g.groups, sub)
+	if !ok {
 		return fmt.Errorf("keepass: removing group %s (id=%d): not in group %s (id=%d)", sub.Name, sub.ID, g.Name, g.ID)
 	}
-	copy(g.groups[i:], g.groups[i+1:])
-	g.groups[len(g.groups)-1] = nil
-	g.groups = g.groups[:len(g.groups)-1]
 	sub.db = nil
 	return nil
 }
 
-func (g *Group) indexGroup(sub *Group) int {
-	for i := range g.groups {
-		if g.groups[i] == sub {
+func indexGroup(groups []*Group, sub *Group) int {
+	for i := range groups {
+		if groups[i] == sub {
 			return i
 		}
 	}
 	return -1
+}
+
+func removeGroup(groups []*Group, g *Group) ([]*Group, bool) {
+	i := indexGroup(groups, g)
+	if i == -1 {
+		return groups, false
+	}
+	copy(groups[i:], groups[i+1:])
+	groups[len(groups)-1] = nil
+	groups = groups[:len(groups)-1]
+	return groups, true
 }
 
 // Entries returns the entries in the group as a slice.
