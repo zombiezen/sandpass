@@ -33,6 +33,17 @@
     <form method="POST">
       <div class="sandpassFields">
         <div class="sandpassFieldGroup">
+          <label for="entryParent" class="sandpassFieldName">Group</label>
+          <div class="sandpassField">
+            <select id="entryParent" name="parent" required>
+              {{range .ParentOptions}}
+              <option value="{{.Group.ID}}"
+                {{- if eq .Group.ID $.Group.ID}} selected{{end}}>{{emspace .Indent}}{{.Group.Name}}</option>
+              {{end}}
+            </select>
+          </div>
+        </div>
+        <div class="sandpassFieldGroup">
           <label for="entryTitle" class="sandpassFieldName">Title</label>
           <div class="sandpassField">
             <input type="text" name="title" value="{{.Entry.Title}}" id="entryTitle" class="sandpassFieldTextbox">

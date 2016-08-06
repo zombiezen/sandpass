@@ -29,8 +29,24 @@
     </div>
     {{end}}
     <form method="POST">
-      <input type="hidden" name="parent" value="{{if .Parent.IsRoot}}root{{else}}{{.Parent.ID}}{{end}}">
       <div class="sandpassFields">
+        <div class="sandpassFieldGroup">
+          <label for="groupParent" class="sandpassFieldName">Group</label>
+          <div class="sandpassField">
+            <select id="groupParent" name="parent" required>
+              {{range .ParentOptions}}
+                {{if .Group.IsRoot}}
+                  <option value="root"{{if $.Parent.IsRoot}} selected{{end}}>Top</option>
+                {{else}}
+                  <option value="{{.Group.ID}}"
+                    {{- if and (not $.Parent.IsRoot) (eq .Group.ID $.Parent.ID)}} selected{{end}}>
+                    {{- emspace .Indent}}{{.Group.Name -}}
+                  </option>
+                {{end}}
+              {{end}}
+            </select>
+          </div>
+        </div>
         <div class="sandpassFieldGroup">
           <label for="groupName" class="sandpassFieldName">Name</label>
           <div class="sandpassField">

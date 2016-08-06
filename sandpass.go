@@ -29,6 +29,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -85,6 +86,7 @@ func initTemplates() error {
 	var err error
 	tmpl, err = template.New("").Funcs(template.FuncMap{
 		"sortEntries": sortEntries,
+		"emspace":     emspace,
 	}).ParseGlob(filepath.Join(*templatesDir, "*.html"))
 	return err
 }
@@ -268,11 +270,13 @@ func postEntryForm(w http.ResponseWriter, r *http.Request) error {
 		params.e = new(keepass.Entry)
 	}
 	return tmpl.ExecuteTemplate(w, "editentry.html", struct {
-		Entry *keepass.Entry
-		Group *keepass.Group
+		Entry         *keepass.Entry
+		Group         *keepass.Group
+		ParentOptions []groupItem
 	}{
-		Entry: params.e,
-		Group: params.g,
+		Entry:         params.e,
+		Group:         params.g,
+		ParentOptions: flattenGroups(nil, db.Root(), 0, nil),
 	})
 }
 
@@ -281,9 +285,14 @@ func postEntry(w http.ResponseWriter, r *http.Request) error {
 	mu.Lock()
 	defer mu.Unlock()
 	var p requestParams
+	var newParent *keepass.Group
 	err := transaction(w, r, func(db *keepass.Database) error {
 		var err error
 		p, err = extractRequestParams(db, r)
+		if err != nil {
+			return err
+		}
+		newParent, err = extractParentGroup(db, r.Form)
 		if err != nil {
 			return err
 		}
@@ -295,6 +304,10 @@ func postEntry(w http.ResponseWriter, r *http.Request) error {
 			p.e.TimeInfo = keepass.TimeInfo{
 				CreationTime:   now,
 				LastAccessTime: now,
+			}
+		} else if parent := p.e.Parent(); newParent != parent {
+			if err := p.e.SetParent(newParent); err != nil {
+				return err
 			}
 		}
 		p.e.Title = r.FormValue("title")
@@ -309,7 +322,7 @@ func postEntry(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	u, err := router.GetRoute("viewEntry").URL(
-		"gid", strconv.FormatUint(uint64(p.g.ID), 10),
+		"gid", strconv.FormatUint(uint64(newParent.ID), 10),
 		"uuid", p.e.UUID.String())
 	if err != nil {
 		return err
@@ -378,10 +391,12 @@ func postGroupForm(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	var params struct {
-		Group    *keepass.Group
-		Parent   *keepass.Group
-		NewGroup bool
+		Group         *keepass.Group
+		Parent        *keepass.Group
+		NewGroup      bool
+		ParentOptions []groupItem
 	}
+	var exclude func(*keepass.Group) bool
 	if rp.g == nil {
 		params.Group = new(keepass.Group)
 		parent, err := extractParentGroup(db, r.Form)
@@ -393,7 +408,11 @@ func postGroupForm(w http.ResponseWriter, r *http.Request) error {
 	} else {
 		params.Group = rp.g
 		params.Parent = rp.g.Parent()
+		exclude = func(g *keepass.Group) bool { return g == rp.g }
 	}
+	root := db.Root()
+	params.ParentOptions = []groupItem{{root, 0}}
+	params.ParentOptions = flattenGroups(params.ParentOptions, root, 1, exclude)
 	return tmpl.ExecuteTemplate(w, "editgroup.html", params)
 }
 
@@ -419,8 +438,9 @@ func postGroup(w http.ResponseWriter, r *http.Request) error {
 				LastAccessTime: now,
 			}
 		} else if parent := p.g.Parent(); newParent != parent {
-			// TODO(#15): reparent
-			return errors.New("reparenting not implemented")
+			if err := p.g.SetParent(newParent); err != nil {
+				return err
+			}
 		}
 		p.g.Name = r.FormValue("name")
 		p.g.LastModificationTime = now
@@ -709,6 +729,24 @@ func writeDatabase(db *keepass.Database) error {
 	return nil
 }
 
+type groupItem struct {
+	Group  *keepass.Group
+	Indent int
+}
+
+// flattenGroups returns the database's groups as a flat list.
+func flattenGroups(items []groupItem, g *keepass.Group, indent int, exclude func(*keepass.Group) bool) []groupItem {
+	for i := 0; i < g.NGroups(); i++ {
+		sub := g.Group(i)
+		if exclude != nil && exclude(sub) {
+			continue
+		}
+		items = append(items, groupItem{sub, indent})
+		items = flattenGroups(items, sub, indent+1, exclude)
+	}
+	return items
+}
+
 func optReader(b []byte) io.Reader {
 	if len(b) == 0 {
 		return nil
@@ -721,6 +759,10 @@ func sortEntries(ent []*keepass.Entry) []*keepass.Entry {
 	copy(sorted, ent)
 	sort.Sort(sorted)
 	return []*keepass.Entry(sorted)
+}
+
+func emspace(n int) template.HTML {
+	return template.HTML(strings.Repeat("&emsp;", n))
 }
 
 type entriesByName []*keepass.Entry
