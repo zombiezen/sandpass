@@ -9,10 +9,10 @@
     <div class="actionBar">
       {{template "searchbox.html"}}
       {{if .Permissions.Has "write"}}
-        <button data-href="/newgroup?parent=root">New Group</button>
+        <button data-href="{{route "newGroupForm"}}?parent=root">New Group</button>
       {{end}}
       {{if .Permissions.Has "init"}}
-        <button data-href="/nuke">Delete Database</button>
+        <button data-href="{{route "confirmNuke"}}">Delete Database</button>
       {{end}}
     </div>
     {{template "grouplist.html" .Root}}

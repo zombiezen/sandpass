@@ -4,13 +4,13 @@
 <div class="pageContainer">
   <div class="pageHeader">
     <nav class="breadcrumb">
-      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+      <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
     </nav>
     <h1 class="pageTitle">Search</h1>
   </div>
   <div class="pageBody">
     <div class="actionBar">
-      <form method="GET" action="/search">
+      <form method="GET" action="{{route "search"}}">
         <input type="search" name="q" value="{{.Query}}">
         <input type="submit" value="Search">
       </form>
@@ -18,7 +18,7 @@
     {{if .Results}}
     <ul>
       {{range .Results}}
-      <li><a href="/groups/{{.Entry.Parent.ID}}/entry/{{.Entry.UUID}}">{{.Entry.Title}}</a></li>
+      <li><a href="{{route "viewEntry" "gid" .Entry.Parent.ID "uuid" .Entry.UUID}}">{{.Entry.Title}}</a></li>
       {{end}}
     </ul>
     {{else if .Query}}

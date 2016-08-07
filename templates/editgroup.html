@@ -10,7 +10,7 @@
 <div class="pageContainer">
   <div class="pageHeader">
     <nav class="breadcrumb">
-      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+      <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
     </nav>
     <h1 class="pageTitle">
       {{if .NewGroup}}
@@ -23,12 +23,17 @@
   <div class="pageBody">
     {{if not .NewGroup}}
     <div class="actionBar">
-      <button data-href="/groups/{{.Group.ID}}">View</button>
-      <button data-href="/groups/{{.Group.ID}}/delete"
-        {{- if or .Group.NEntries .Group.NGroups}}disabled{{end}}>Delete</button>
+      <button data-href="{{route "viewGroup" "gid" .Group.ID}}">View</button>
+      <button data-href="{{route "confirmDeleteGroup" "gid" .Group.ID}}"
+          {{- if or .Group.NEntries .Group.NGroups}}disabled{{end}}>Delete</button>
     </div>
     {{end}}
-    <form method="POST">
+    <form method="POST" action="
+        {{- if .NewGroup -}}
+          {{- route "newGroup" -}}
+        {{- else -}}
+          {{- route "editGroup" "gid" .Group.ID -}}
+        {{- end -}}">
       <div class="sandpassFields">
         <div class="sandpassFieldGroup">
           <label for="groupParent" class="sandpassFieldName">Group</label>
@@ -55,7 +60,12 @@
         </div>
       </div>
       <div>
-        <button type="button" data-href="/groups{{if not .NewGroup}}/{{.Group.ID}}{{end}}">Cancel</button>
+        <button type="button" data-href="
+            {{- if .NewGroup -}}
+              {{- route "listGroups" -}}
+            {{- else -}}
+              {{- route "viewGroup" "gid" .Group.ID -}}
+            {{- end -}}">Cancel</button>
         <input type="submit" value="Save">
       </div>
     </form>

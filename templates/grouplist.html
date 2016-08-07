@@ -1,7 +1,7 @@
 <ul>
 {{range .Groups}}
   <li>
-    <a href="/groups/{{.ID}}">{{.Name}}</a>
+    <a href="{{route "viewGroup" "gid" .ID}}">{{.Name}}</a>
     {{if .NGroups}}{{template "grouplist.html" .}}{{end}}
   </li>
 {{end}}

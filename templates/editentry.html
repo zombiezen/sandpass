@@ -10,9 +10,9 @@
 <div class="pageContainer">
   <div class="pageHeader">
     <nav class="breadcrumb">
-      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+      <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
       {{with .Group}}
-      <a href="/groups/{{.ID}}" class="breadcrumbLink">{{.Name}}</a> &#x279C;
+      <a href="{{route "viewGroup" "gid" .ID}}" class="breadcrumbLink">{{.Name}}</a> &#x279C;
       {{end}}
     </nav>
     <h1 class="pageTitle">
@@ -26,11 +26,16 @@
   <div class="pageBody">
     {{if not .Entry.UUID.IsZero}}
     <div class="actionBar">
-      <button data-href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}">View</button>
-      <button data-href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}/delete">Delete</button>
+      <button data-href="{{route "viewEntry" "gid" .Group.ID "uuid" .Entry.UUID}}">View</button>
+      <button data-href="{{route "confirmDeleteEntry" "gid" .Group.ID "uuid" .Entry.UUID}}">Delete</button>
     </div>
     {{end}}
-    <form method="POST">
+    <form method="POST" action="
+        {{- if .Entry.UUID.IsZero -}}
+          {{- route "newEntry" "gid" .Group.ID -}}
+        {{- else -}}
+          {{- route "editEntry" "gid" .Group.ID "uuid" .Entry.UUID -}}
+        {{- end -}}">
       <div class="sandpassFields">
         <div class="sandpassFieldGroup">
           <label for="entryParent" class="sandpassFieldName">Group</label>
@@ -75,13 +80,18 @@
         </div>
       </div>
       <div>
-        <button type="button" data-href="/groups/{{.Group.ID}}{{if not .Entry.UUID.IsZero}}/entry/{{.Entry.UUID}}{{end}}">Cancel</button>
+        <button type="button" data-href="
+            {{- if .Entry.UUID.IsZero -}}
+              {{- route "viewGroup" "gid" .Group.ID -}}
+            {{- else -}}
+              {{- route "viewEntry" "gid" .Group.ID "uuid" .Entry.UUID -}}
+            {{- end -}}">Cancel</button>
         <input type="submit" value="Save">
       </div>
     </form>
 
     <h2>Generate Password</h2>
-    <form id="pwgenForm" method="GET" action="/_/pwgen">
+    <form id="pwgenForm" method="GET" action="{{route "pwgen"}}">
       <div class="pwgenType">
         <div>
           <input type="radio" name="mode" value="" id="normalMode" checked>

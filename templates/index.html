@@ -15,7 +15,7 @@
     {{with .Error}}
       <div class="error">{{.}}</div>
     {{end}}
-    <form method="POST" action="/_/newdb" enctype="multipart/form-data">
+    <form method="POST" action="{{route "newDB"}}" enctype="multipart/form-data">
       <div class="formGroup">
         <label>Existing database (optional)</label>
         <input type="file" name="database">
@@ -42,7 +42,7 @@
     {{with .Error}}
       <div class="error">{{.}}</div>
     {{end}}
-    <form method="POST" action="/_/start" enctype="multipart/form-data">
+    <form method="POST" action="{{route "startSession"}}" enctype="multipart/form-data">
       <div class="formGroup">
         <label>Password</label>
         <input type="password" name="password">

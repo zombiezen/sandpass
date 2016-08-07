@@ -4,9 +4,9 @@
 <div class="pageContainer">
   <div class="pageHeader">
     <nav class="breadcrumb">
-      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+      <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
       {{with .Group}}
-      <a href="/groups/{{.ID}}" class="breadcrumbLink">{{.Name}}</a> &#x279C;
+      <a href="{{route "viewGroup" "gid" .ID}}" class="breadcrumbLink">{{.Name}}</a> &#x279C;
       {{end}}
     </nav>
     <h1 class="pageTitle">{{.Entry.Title}}</h1>
@@ -14,8 +14,8 @@
   <div class="pageBody">
     {{if .Permissions.Has "write"}}
       <div class="actionBar">
-        <button data-href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}/edit">Edit</button>
-        <button data-href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}/delete">Delete</button>
+        <button data-href="{{route "editEntryForm" "gid" .Group.ID "uuid" .Entry.UUID}}">Edit</button>
+        <button data-href="{{route "confirmDeleteEntry" "gid" .Group.ID "uuid" .Entry.UUID}}">Delete</button>
       </div>
     {{end}}
     {{with .Entry}}

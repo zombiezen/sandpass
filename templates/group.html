@@ -4,7 +4,7 @@
 <div class="pageContainer">
   <div class="pageHeader">
     <nav class="breadcrumb">
-      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+      <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
     </nav>
     <h1 class="pageTitle">{{.Group.Name}}</h1>
   </div>
@@ -12,16 +12,16 @@
     <div class="actionBar">
       {{template "searchbox.html"}}
       {{if .Permissions.Has "write"}}
-        <button data-href="/groups/{{.Group.ID}}/newentry">New Entry</button>
-        <button data-href="/newgroup?parent={{.Group.ID}}">New Group</button>
-        <button data-href="/groups/{{.Group.ID}}/edit">Edit Group</button>
-        <button data-href="/groups/{{.Group.ID}}/delete"
-          {{- if or .NEntries .NGroups}} disabled{{end}}>Delete Group</button>
+        <button data-href="{{route "newEntryForm" "gid" .Group.ID}}">New Entry</button>
+        <button data-href="{{route "newGroupForm"}}?parent={{.Group.ID}}">New Group</button>
+        <button data-href="{{route "editGroupForm" "gid" .Group.ID}}">Edit Group</button>
+        <button data-href="{{route "confirmDeleteGroup" "gid" .Group.ID}}"
+            {{- if or .Group.NEntries .Group.NGroups}} disabled{{end}}>Delete Group</button>
       {{end}}
     </div>
     <ul>
-      {{range sortEntries .Entries}}
-      <li><a href="/groups/{{$.Group.ID}}/entry/{{.UUID}}">{{.Title}}</a></li>
+      {{range sortEntries .Group.Entries}}
+      <li><a href="{{route "viewEntry" "gid" $.Group.ID "uuid" .UUID}}">{{.Title}}</a></li>
       {{end}}
     </ul>
   </div>

@@ -4,9 +4,9 @@
 <div class="pageContainer">
   <div class="pageHeader">
     <nav class="breadcrumb">
-      <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
+      <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
       {{with .Group}}
-      <a href="/groups/{{.ID}}" class="breadcrumbLink">{{.Name}}</a> &#x279C;
+      <a href="{{route "viewGroup" "gid" .ID}}" class="breadcrumbLink">{{.Name}}</a> &#x279C;
       {{end}}
     </nav>
     <h1 class="pageTitle">Delete {{.Entry.Title}}</h1>
@@ -14,8 +14,8 @@
   <div class="pageBody">
     <p>Are you sure you want to delete "{{.Entry.Title}}"?  This action cannot be undone.</p>
     <div>
-      <form method="POST">
-        <button type="button" data-href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}">Cancel</button>
+      <form method="POST" action="{{route "deleteEntry" "gid" .Group.ID "uuid" .Entry.UUID}}">
+        <button type="button" data-href="{{route "viewEntry" "gid" .Group.ID "uuid" .Entry.UUID}}">Cancel</button>
         <input type="submit" value="Delete">
       </form>
     </div>

@@ -86,8 +86,9 @@ func main() {
 func initTemplates() error {
 	var err error
 	tmpl, err = template.New("").Funcs(template.FuncMap{
-		"sortEntries": sortEntries,
 		"emspace":     emspace,
+		"route":       templateRoute,
+		"sortEntries": sortEntries,
 	}).ParseGlob(filepath.Join(*templatesDir, "*.html"))
 	return err
 }
@@ -103,32 +104,32 @@ func initHandlers() {
 
 	// App handlers
 	r.Handle("/", appHandler{f: index})
-	r.Handle("/search", appHandler{f: handleSearch})
-	r.Handle("/groups", appHandler{f: groupList}).Name("listGroups")
-	r.Handle("/newgroup", appHandler{f: postGroupForm, perm: "write"}).Methods("GET")
-	r.Handle("/newgroup", appHandler{f: postGroup, perm: "write"}).Methods("POST")
-	r.Handle("/nuke", appHandler{f: confirmNuke, perm: "init"}).Methods("GET")
-	r.Handle("/nuke", appHandler{f: nuke, perm: "init"}).Methods("POST")
-	r.Handle("/groups/{gid}", appHandler{f: viewGroup}).Name("viewGroup").Methods("GET")
+	r.Handle("/search", appHandler{f: handleSearch}).Name("search")
+	r.Handle("/groups", appHandler{f: listGroups}).Name("listGroups")
+	r.Handle("/newgroup", appHandler{f: postGroupForm, perm: "write"}).Methods("GET").Name("newGroupForm")
+	r.Handle("/newgroup", appHandler{f: postGroup, perm: "write"}).Methods("POST").Name("newGroup")
+	r.Handle("/nuke", appHandler{f: confirmNuke, perm: "init"}).Methods("GET").Name("confirmNuke")
+	r.Handle("/nuke", appHandler{f: nuke, perm: "init"}).Methods("POST").Name("nuke")
+	r.Handle("/groups/{gid}", appHandler{f: viewGroup}).Methods("GET").Name("viewGroup")
 	r.Handle("/groups/{gid}", appHandler{f: deleteGroup, perm: "write"}).Methods("DELETE")
 	rGroup := r.PathPrefix("/groups/{gid}").Subrouter()
-	rGroup.Handle("/edit", appHandler{f: postGroupForm, perm: "write"}).Methods("GET")
-	rGroup.Handle("/edit", appHandler{f: postGroup, perm: "write"}).Methods("POST")
-	rGroup.Handle("/delete", appHandler{f: confirmDeleteGroup, perm: "write"}).Methods("GET")
-	rGroup.Handle("/delete", appHandler{f: deleteGroup, perm: "write"}).Methods("POST")
-	rGroup.Handle("/newentry", appHandler{f: postEntryForm, perm: "write"}).Methods("GET")
-	rGroup.Handle("/newentry", appHandler{f: postEntry, perm: "write"}).Methods("POST")
-	rGroup.Handle("/entry/{uuid}", appHandler{f: viewEntry}).Name("viewEntry").Methods("GET")
+	rGroup.Handle("/edit", appHandler{f: postGroupForm, perm: "write"}).Methods("GET").Name("editGroupForm")
+	rGroup.Handle("/edit", appHandler{f: postGroup, perm: "write"}).Methods("POST").Name("editGroup")
+	rGroup.Handle("/delete", appHandler{f: confirmDeleteGroup, perm: "write"}).Methods("GET").Name("confirmDeleteGroup")
+	rGroup.Handle("/delete", appHandler{f: deleteGroup, perm: "write"}).Methods("POST").Name("deleteGroup")
+	rGroup.Handle("/newentry", appHandler{f: postEntryForm, perm: "write"}).Methods("GET").Name("newEntryForm")
+	rGroup.Handle("/newentry", appHandler{f: postEntry, perm: "write"}).Methods("POST").Name("newEntry")
+	rGroup.Handle("/entry/{uuid}", appHandler{f: viewEntry}).Methods("GET").Name("viewEntry")
 	rGroup.Handle("/entry/{uuid}", appHandler{f: deleteEntry, perm: "write"}).Methods("DELETE")
 	rEntry := rGroup.PathPrefix("/entry/{uuid}").Subrouter()
-	rEntry.Handle("/edit", appHandler{f: postEntryForm, perm: "write"}).Methods("GET")
-	rEntry.Handle("/edit", appHandler{f: postEntry, perm: "write"}).Methods("POST")
-	rEntry.Handle("/delete", appHandler{f: confirmDeleteEntry, perm: "write"}).Methods("GET")
-	rEntry.Handle("/delete", appHandler{f: deleteEntry, perm: "write"}).Methods("POST")
+	rEntry.Handle("/edit", appHandler{f: postEntryForm, perm: "write"}).Methods("GET").Name("editEntryForm")
+	rEntry.Handle("/edit", appHandler{f: postEntry, perm: "write"}).Methods("POST").Name("editEntry")
+	rEntry.Handle("/delete", appHandler{f: confirmDeleteEntry, perm: "write"}).Methods("GET").Name("confirmDeleteEntry")
+	rEntry.Handle("/delete", appHandler{f: deleteEntry, perm: "write"}).Methods("POST").Name("deleteEntry")
 	meta := r.PathPrefix("/_").Subrouter()
-	meta.Handle("/newdb", appHandler{f: newDB, perm: "init"}).Methods("POST")
-	meta.Handle("/start", appHandler{f: startSession}).Methods("POST")
-	meta.Handle("/pwgen", appHandler{f: pwgen}).Methods("GET")
+	meta.Handle("/newdb", appHandler{f: newDB, perm: "init"}).Methods("POST").Name("newDB")
+	meta.Handle("/start", appHandler{f: startSession}).Methods("POST").Name("startSession")
+	meta.Handle("/pwgen", appHandler{f: pwgen}).Methods("GET").Name("pwgen")
 
 	// Static files
 	staticFiles := []struct {
@@ -221,7 +222,7 @@ func index(w http.ResponseWriter, r *http.Request) error {
 	})
 }
 
-func groupList(w http.ResponseWriter, r *http.Request) error {
+func listGroups(w http.ResponseWriter, r *http.Request) error {
 	mu.Lock()
 	defer mu.Unlock()
 	db, err := sessions.dbFromRequest(w, r)
@@ -787,6 +788,25 @@ func sortEntries(ent []*keepass.Entry) []*keepass.Entry {
 
 func emspace(n int) template.HTML {
 	return template.HTML(strings.Repeat("&emsp;", n))
+}
+
+func templateRoute(name string, pairs ...interface{}) (template.URL, error) {
+	r := router.Get(name)
+	if r == nil {
+		return "", fmt.Errorf("no route found for %q", name)
+	}
+	var s []string
+	if len(pairs) != 0 {
+		s = make([]string, len(pairs))
+		for i := range pairs {
+			s[i] = fmt.Sprint(pairs[i])
+		}
+	}
+	u, err := r.URLPath(s...)
+	if err != nil {
+		return "", fmt.Errorf("route %q: %v", name, err)
+	}
+	return template.URL(u.String()), nil
 }
 
 type entriesByName []*keepass.Entry
