@@ -6,7 +6,7 @@
     <h1 class="pageTitle noBreadcrumb">Sandpass</h1>
   </div>
   <div class="pageBody">
-  {{if .FirstTime}}
+  {{if and .FirstTime (.Permissions.Has "init")}}
     <p>
       Welcome to Sandpass!  Please enter an encryption passphrase for your database
       below.  If you have an existing KeePassX database, you may upload it below,
@@ -30,6 +30,11 @@
       </div>
       <input type="submit" value="Create">
     </form>
+  {{else if .FirstTime}}
+    <p>
+      This Sandpass database has not been set up yet, and you do not have
+      permission to create it.  Contact the grain owner.
+    </p>
   {{else}}
     <p>
       Welcome back to Sandpass!  Enter your encryption passphrase to continue.

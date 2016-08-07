@@ -35,6 +35,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"zombiezen.com/go/sandpass/pkg/keepass"
+	"zombiezen.com/go/sandpass/pkg/sandstormhdr"
 	"zombiezen.com/go/sandpass/pkg/uuids"
 )
 
@@ -210,11 +211,13 @@ func index(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 	return tmpl.ExecuteTemplate(w, "index.html", struct {
-		FirstTime bool
-		Error     string
+		FirstTime   bool
+		Error       string
+		Permissions permissions
 	}{
-		FirstTime: !exists,
-		Error:     r.FormValue("error"),
+		FirstTime:   !exists,
+		Error:       r.FormValue("error"),
+		Permissions: requestPermissions(r),
 	})
 }
 
@@ -226,9 +229,11 @@ func groupList(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return tmpl.ExecuteTemplate(w, "groups.html", struct {
-		Root *keepass.Group
+		Root        *keepass.Group
+		Permissions permissions
 	}{
-		Root: db.Root(),
+		Root:        db.Root(),
+		Permissions: requestPermissions(r),
 	})
 }
 
@@ -243,7 +248,13 @@ func viewGroup(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return tmpl.ExecuteTemplate(w, "group.html", params.g)
+	return tmpl.ExecuteTemplate(w, "group.html", struct {
+		Group       *keepass.Group
+		Permissions permissions
+	}{
+		Group:       params.g,
+		Permissions: requestPermissions(r),
+	})
 }
 
 func viewEntry(w http.ResponseWriter, r *http.Request) error {
@@ -258,11 +269,13 @@ func viewEntry(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return tmpl.ExecuteTemplate(w, "entry.html", struct {
-		Entry *keepass.Entry
-		Group *keepass.Group
+		Entry       *keepass.Entry
+		Group       *keepass.Group
+		Permissions permissions
 	}{
-		Entry: params.e,
-		Group: params.g,
+		Entry:       params.e,
+		Group:       params.g,
+		Permissions: requestPermissions(r),
 	})
 }
 
@@ -788,4 +801,20 @@ func (e entriesByName) Less(i, j int) bool {
 
 func (e entriesByName) Swap(i, j int) {
 	e[i], e[j] = e[j], e[i]
+}
+
+// permissions is a set of permissions from the X-Sandstorm-Permissions header.
+type permissions []string
+
+func requestPermissions(r *http.Request) permissions {
+	return permissions(sandstormhdr.Permissions(r.Header))
+}
+
+func (p permissions) Has(name string) bool {
+	for _, perm := range p {
+		if perm == name {
+			return true
+		}
+	}
+	return false
 }

@@ -12,11 +12,13 @@
     <h1 class="pageTitle">{{.Entry.Title}}</h1>
   </div>
   <div class="pageBody">
+    {{if .Permissions.Has "write"}}
+      <div class="actionBar">
+        <button data-href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}/edit">Edit</button>
+        <button data-href="/groups/{{.Group.ID}}/entry/{{.Entry.UUID}}/delete">Delete</button>
+      </div>
+    {{end}}
     {{with .Entry}}
-    <div class="actionBar">
-      <button data-href="/groups/{{$.Group.ID}}/entry/{{.UUID}}/edit">Edit</button>
-      <button data-href="/groups/{{$.Group.ID}}/entry/{{.UUID}}/delete">Delete</button>
-    </div>
     <div class="sandpassFields">
       {{with .Username}}
       <div class="sandpassFieldGroup">

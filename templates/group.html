@@ -1,25 +1,27 @@
 <!DOCTYPE html>
-<title>{{.Name}} - Sandpass</title>
+<title>{{.Group.Name}} - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
   <div class="pageHeader">
     <nav class="breadcrumb">
       <a href="/groups" class="breadcrumbLink">Groups</a> &#x279C;
     </nav>
-    <h1 class="pageTitle">{{.Name}}</h1>
+    <h1 class="pageTitle">{{.Group.Name}}</h1>
   </div>
   <div class="pageBody">
     <div class="actionBar">
       {{template "searchbox.html"}}
-      <button data-href="/groups/{{.ID}}/newentry">New Entry</button>
-      <button data-href="/newgroup?parent={{.ID}}">New Group</button>
-      <button data-href="/groups/{{.ID}}/edit">Edit Group</button>
-      <button data-href="/groups/{{.ID}}/delete"
-        {{- if or .NEntries .NGroups}} disabled{{end}}>Delete Group</button>
+      {{if .Permissions.Has "write"}}
+        <button data-href="/groups/{{.Group.ID}}/newentry">New Entry</button>
+        <button data-href="/newgroup?parent={{.Group.ID}}">New Group</button>
+        <button data-href="/groups/{{.Group.ID}}/edit">Edit Group</button>
+        <button data-href="/groups/{{.Group.ID}}/delete"
+          {{- if or .NEntries .NGroups}} disabled{{end}}>Delete Group</button>
+      {{end}}
     </div>
     <ul>
       {{range sortEntries .Entries}}
-      <li><a href="/groups/{{$.ID}}/entry/{{.UUID}}">{{.Title}}</a></li>
+      <li><a href="/groups/{{$.Group.ID}}/entry/{{.UUID}}">{{.Title}}</a></li>
       {{end}}
     </ul>
   </div>

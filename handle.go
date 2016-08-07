@@ -25,9 +25,9 @@ import (
 )
 
 var (
-	staticDir     = flag.String("static_dir", ".", "path to static resources (should be the project directory for development)")
-	maxFormMemory = flag.Int64("max_form_memory", 512*1024, "number of bytes of a form to keep in memory before writing out to temporary files")
-	permissions   = flag.Bool("permissions", true, "whether to check Sandstorm permissions")
+	staticDir        = flag.String("static_dir", ".", "path to static resources (should be the project directory for development)")
+	maxFormMemory    = flag.Int64("max_form_memory", 512*1024, "number of bytes of a form to keep in memory before writing out to temporary files")
+	checkPermissions = flag.Bool("permissions", true, "whether to check Sandstorm permissions (can be disabled for development)")
 )
 
 // staticFileHandler serves a file from the static directory.
@@ -43,7 +43,7 @@ type appHandler struct {
 }
 
 func (ah appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if *permissions && ah.perm != "" && !sandstormhdr.HasPermission(r.Header, ah.perm) {
+	if *checkPermissions && ah.perm != "" && !sandstormhdr.HasPermission(r.Header, ah.perm) {
 		http.Error(w, "Permission denied", http.StatusForbidden)
 		return
 	}

@@ -8,8 +8,12 @@
   <div class="pageBody">
     <div class="actionBar">
       {{template "searchbox.html"}}
-      <button data-href="/newgroup?parent=root">New Group</button>
-      <button data-href="/nuke">Delete Database</button>
+      {{if .Permissions.Has "write"}}
+        <button data-href="/newgroup?parent=root">New Group</button>
+      {{end}}
+      {{if .Permissions.Has "init"}}
+        <button data-href="/nuke">Delete Database</button>
+      {{end}}
     </div>
     {{template "grouplist.html" .Root}}
   </div>
