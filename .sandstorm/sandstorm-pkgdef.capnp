@@ -93,16 +93,24 @@ const pkgdef :Spk.PackageDefinition = (
         ( name = "write",
           title = (defaultText = "Make changes to database"),
         ),
+        ( name = "init",
+          title = (defaultText = "Create, delete, and rekey the database"),
+        ),
       ],
       roles = [
         ( title = (defaultText = "viewer"),
           verbPhrase = (defaultText = "can read"),
-          permissions = [true, false],
+          permissions = [true, false, false],
         ),
         ( title = (defaultText = "editor"),
           verbPhrase = (defaultText = "can read and write"),
-          permissions = [true, true],
+          permissions = [true, true, false],
         ),
+        ( title = (defaultText = "manager"),
+          verbPhrase = (defaultText = "can read, write, and manage"),
+          description = (defaultText = "A manager can not only edit the database, but also delete it."),
+          permissions = [true, true, true],
+        )
       ]
     )
   )
