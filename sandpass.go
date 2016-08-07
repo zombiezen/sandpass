@@ -123,7 +123,7 @@ func initHandlers() {
 	r.Handle("/nuke", checkPerm("write", appHandler(confirmNuke))).Methods("GET")
 	r.Handle("/nuke", checkPerm("write", appHandler(nuke))).Methods("POST")
 	r.Handle("/_/newdb", checkPerm("write", appHandler(newDB))).Methods("POST")
-	r.Handle("/_/start", checkPerm("write", appHandler(startSession))).Methods("POST")
+	r.Handle("/_/start", checkPerm("read", appHandler(startSession))).Methods("POST")
 	r.Handle("/_/pwgen", appHandler(pwgen)).Methods("GET")
 
 	// Static files
