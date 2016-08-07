@@ -101,39 +101,50 @@ func initHandlers() {
 	r := mux.NewRouter()
 
 	// App handlers
-	r.Handle("/", checkPerm("read", appHandler(index)))
-	r.Handle("/search", checkPerm("read", appHandler(handleSearch)))
-	r.Handle("/groups", checkPerm("read", appHandler(groupList))).Name("listGroups")
-	r.Handle("/newgroup", checkPerm("write", appHandler(postGroupForm))).Methods("GET")
-	r.Handle("/newgroup", checkPerm("write", appHandler(postGroup))).Methods("POST")
-	r.Handle("/groups/{gid}", checkPerm("read", appHandler(viewGroup))).Name("viewGroup").Methods("GET")
-	r.Handle("/groups/{gid}", checkPerm("write", appHandler(deleteGroup))).Methods("DELETE")
-	r.Handle("/groups/{gid}/edit", checkPerm("write", appHandler(postGroupForm))).Methods("GET")
-	r.Handle("/groups/{gid}/edit", checkPerm("write", appHandler(postGroup))).Methods("POST")
-	r.Handle("/groups/{gid}/delete", checkPerm("write", appHandler(confirmDeleteGroup))).Methods("GET")
-	r.Handle("/groups/{gid}/delete", checkPerm("write", appHandler(deleteGroup))).Methods("POST")
-	r.Handle("/groups/{gid}/newentry", checkPerm("write", appHandler(postEntryForm))).Methods("GET")
-	r.Handle("/groups/{gid}/newentry", checkPerm("write", appHandler(postEntry))).Methods("POST")
-	r.Handle("/groups/{gid}/entry/{uuid}", checkPerm("read", appHandler(viewEntry))).Name("viewEntry").Methods("GET")
-	r.Handle("/groups/{gid}/entry/{uuid}", checkPerm("write", appHandler(deleteEntry))).Methods("DELETE")
-	r.Handle("/groups/{gid}/entry/{uuid}/edit", checkPerm("write", appHandler(postEntryForm))).Methods("GET")
-	r.Handle("/groups/{gid}/entry/{uuid}/edit", checkPerm("write", appHandler(postEntry))).Methods("POST")
-	r.Handle("/groups/{gid}/entry/{uuid}/delete", checkPerm("write", appHandler(confirmDeleteEntry))).Methods("GET")
-	r.Handle("/groups/{gid}/entry/{uuid}/delete", checkPerm("write", appHandler(deleteEntry))).Methods("POST")
-	r.Handle("/nuke", checkPerm("write", appHandler(confirmNuke))).Methods("GET")
-	r.Handle("/nuke", checkPerm("write", appHandler(nuke))).Methods("POST")
-	r.Handle("/_/newdb", checkPerm("write", appHandler(newDB))).Methods("POST")
-	r.Handle("/_/start", checkPerm("read", appHandler(startSession))).Methods("POST")
-	r.Handle("/_/pwgen", appHandler(pwgen)).Methods("GET")
+	r.Handle("/", appHandler{f: index, perm: "read"})
+	r.Handle("/search", appHandler{f: handleSearch, perm: "read"})
+	r.Handle("/groups", appHandler{f: groupList, perm: "read"}).Name("listGroups")
+	r.Handle("/newgroup", appHandler{f: postGroupForm, perm: "write"}).Methods("GET")
+	r.Handle("/newgroup", appHandler{f: postGroup, perm: "write"}).Methods("POST")
+	r.Handle("/nuke", appHandler{f: confirmNuke, perm: "write"}).Methods("GET")
+	r.Handle("/nuke", appHandler{f: nuke, perm: "write"}).Methods("POST")
+	r.Handle("/groups/{gid}", appHandler{f: viewGroup, perm: "read"}).Name("viewGroup").Methods("GET")
+	r.Handle("/groups/{gid}", appHandler{f: deleteGroup, perm: "write"}).Methods("DELETE")
+	rGroup := r.PathPrefix("/groups/{gid}").Subrouter()
+	rGroup.Handle("/edit", appHandler{f: postGroupForm, perm: "write"}).Methods("GET")
+	rGroup.Handle("/edit", appHandler{f: postGroup, perm: "write"}).Methods("POST")
+	rGroup.Handle("/delete", appHandler{f: confirmDeleteGroup, perm: "write"}).Methods("GET")
+	rGroup.Handle("/delete", appHandler{f: deleteGroup, perm: "write"}).Methods("POST")
+	rGroup.Handle("/newentry", appHandler{f: postEntryForm, perm: "write"}).Methods("GET")
+	rGroup.Handle("/newentry", appHandler{f: postEntry, perm: "write"}).Methods("POST")
+	rGroup.Handle("/entry/{uuid}", appHandler{f: viewEntry, perm: "read"}).Name("viewEntry").Methods("GET")
+	rGroup.Handle("/entry/{uuid}", appHandler{f: deleteEntry, perm: "write"}).Methods("DELETE")
+	rEntry := rGroup.PathPrefix("/entry/{uuid}").Subrouter()
+	rEntry.Handle("/edit", appHandler{f: postEntryForm, perm: "write"}).Methods("GET")
+	rEntry.Handle("/edit", appHandler{f: postEntry, perm: "write"}).Methods("POST")
+	rEntry.Handle("/delete", appHandler{f: confirmDeleteEntry, perm: "write"}).Methods("GET")
+	rEntry.Handle("/delete", appHandler{f: deleteEntry, perm: "write"}).Methods("POST")
+	meta := r.PathPrefix("/_").Subrouter()
+	meta.Handle("/newdb", appHandler{f: newDB, perm: "write"}).Methods("POST")
+	meta.Handle("/start", appHandler{f: startSession, perm: "read"}).Methods("POST")
+	meta.Handle("/pwgen", appHandler{f: pwgen}).Methods("GET")
 
 	// Static files
-	r.Handle("/style.css", serveStaticFile("style.css"))
-	r.Handle("/fonts/Roboto-Regular.woff", serveStaticFile("third_party/roboto/Roboto-Regular.woff"))
-	r.Handle("/fonts/Roboto-Bold.woff", serveStaticFile("third_party/roboto/Roboto-Bold.woff"))
-	r.Handle("/js/clipboard.js", serveStaticFile("third_party/clipboard.js/dist/clipboard.min.js"))
-	r.Handle("/js/editentry.js", serveStaticFile("js/editentry.js"))
-	r.Handle("/js/entry.js", serveStaticFile("js/entry.js"))
-	r.Handle("/js/init.js", serveStaticFile("js/init.js"))
+	staticFiles := []struct {
+		url  string
+		file string
+	}{
+		{"/style.css", "style.css"},
+		{"/fonts/Roboto-Regular.woff", "third_party/roboto/Roboto-Regular.woff"},
+		{"/fonts/Roboto-Bold.woff", "third_party/roboto/Roboto-Bold.woff"},
+		{"/js/clipboard.js", "third_party/clipboard.js/dist/clipboard.min.js"},
+		{"/js/editentry.js", "js/editentry.js"},
+		{"/js/entry.js", "js/entry.js"},
+		{"/js/init.js", "js/init.js"},
+	}
+	for _, sf := range staticFiles {
+		r.Handle(sf.url, staticFileHandler(sf.file))
+	}
 
 	http.Handle("/", r)
 	router = r

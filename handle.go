@@ -30,30 +30,23 @@ var (
 	permissions   = flag.Bool("permissions", true, "whether to check Sandstorm permissions")
 )
 
-// checkPerm wraps a handler to ensure it has the Sandstorm permission called perm.
-func checkPerm(perm string, h http.Handler) http.Handler {
-	if !*permissions {
-		return h
-	}
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !sandstormhdr.HasPermission(r.Header, perm) {
-			http.Error(w, "Forbidden", http.StatusForbidden)
-			return
-		}
-		h.ServeHTTP(w, r)
-	})
+// staticFileHandler serves a file from the static directory.
+type staticFileHandler string
+
+func (h staticFileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, filepath.Join(*staticDir, string(h)))
 }
 
-// serveStaticFile returns a handler that serves a file from the static directory.
-func serveStaticFile(path string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join(*staticDir, path))
-	})
+type appHandler struct {
+	f    func(http.ResponseWriter, *http.Request) error
+	perm string
 }
-
-type appHandler func(http.ResponseWriter, *http.Request) error
 
 func (ah appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if *permissions && ah.perm != "" && !sandstormhdr.HasPermission(r.Header, ah.perm) {
+		http.Error(w, "Permission denied", http.StatusForbidden)
+		return
+	}
 	cleanup, err := parseMultipartForm(r)
 	if err != nil {
 		log.Printf("%s %s fail form parse: %v", r.Method, r.URL.Path, err)
@@ -62,7 +55,7 @@ func (ah appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer cleanup()
 	stats := responsestats.New(w)
-	err = ah(stats, r)
+	err = ah.f(stats, r)
 	if err != nil {
 		if userErrorMessage(err) == "" {
 			log.Printf("%s %s server error: %v", r.Method, r.URL.Path, err)
