@@ -87,21 +87,22 @@ const pkgdef :Spk.PackageDefinition = (
     viewInfo = (
       permissions = [
         ( name = "read",
-          title = (defaultText = "Read from database")
+          title = (defaultText = "Read from database"),
+          obsolete = true,  # implied by sharing
         ),
         ( name = "write",
-          title = (defaultText = "Write to database")
-        )
+          title = (defaultText = "Make changes to database"),
+        ),
       ],
       roles = [
         ( title = (defaultText = "viewer"),
           verbPhrase = (defaultText = "can read"),
-          permissions = [true, false]
+          permissions = [true, false],
         ),
         ( title = (defaultText = "editor"),
           verbPhrase = (defaultText = "can read and write"),
-          permissions = [true, true]
-        )
+          permissions = [true, true],
+        ),
       ]
     )
   )

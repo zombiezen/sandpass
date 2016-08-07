@@ -101,14 +101,14 @@ func initHandlers() {
 	r := mux.NewRouter()
 
 	// App handlers
-	r.Handle("/", appHandler{f: index, perm: "read"})
-	r.Handle("/search", appHandler{f: handleSearch, perm: "read"})
-	r.Handle("/groups", appHandler{f: groupList, perm: "read"}).Name("listGroups")
+	r.Handle("/", appHandler{f: index})
+	r.Handle("/search", appHandler{f: handleSearch})
+	r.Handle("/groups", appHandler{f: groupList}).Name("listGroups")
 	r.Handle("/newgroup", appHandler{f: postGroupForm, perm: "write"}).Methods("GET")
 	r.Handle("/newgroup", appHandler{f: postGroup, perm: "write"}).Methods("POST")
 	r.Handle("/nuke", appHandler{f: confirmNuke, perm: "write"}).Methods("GET")
 	r.Handle("/nuke", appHandler{f: nuke, perm: "write"}).Methods("POST")
-	r.Handle("/groups/{gid}", appHandler{f: viewGroup, perm: "read"}).Name("viewGroup").Methods("GET")
+	r.Handle("/groups/{gid}", appHandler{f: viewGroup}).Name("viewGroup").Methods("GET")
 	r.Handle("/groups/{gid}", appHandler{f: deleteGroup, perm: "write"}).Methods("DELETE")
 	rGroup := r.PathPrefix("/groups/{gid}").Subrouter()
 	rGroup.Handle("/edit", appHandler{f: postGroupForm, perm: "write"}).Methods("GET")
@@ -117,7 +117,7 @@ func initHandlers() {
 	rGroup.Handle("/delete", appHandler{f: deleteGroup, perm: "write"}).Methods("POST")
 	rGroup.Handle("/newentry", appHandler{f: postEntryForm, perm: "write"}).Methods("GET")
 	rGroup.Handle("/newentry", appHandler{f: postEntry, perm: "write"}).Methods("POST")
-	rGroup.Handle("/entry/{uuid}", appHandler{f: viewEntry, perm: "read"}).Name("viewEntry").Methods("GET")
+	rGroup.Handle("/entry/{uuid}", appHandler{f: viewEntry}).Name("viewEntry").Methods("GET")
 	rGroup.Handle("/entry/{uuid}", appHandler{f: deleteEntry, perm: "write"}).Methods("DELETE")
 	rEntry := rGroup.PathPrefix("/entry/{uuid}").Subrouter()
 	rEntry.Handle("/edit", appHandler{f: postEntryForm, perm: "write"}).Methods("GET")
@@ -126,7 +126,7 @@ func initHandlers() {
 	rEntry.Handle("/delete", appHandler{f: deleteEntry, perm: "write"}).Methods("POST")
 	meta := r.PathPrefix("/_").Subrouter()
 	meta.Handle("/newdb", appHandler{f: newDB, perm: "write"}).Methods("POST")
-	meta.Handle("/start", appHandler{f: startSession, perm: "read"}).Methods("POST")
+	meta.Handle("/start", appHandler{f: startSession}).Methods("POST")
 	meta.Handle("/pwgen", appHandler{f: pwgen}).Methods("GET")
 
 	// Static files
