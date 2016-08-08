@@ -1,10 +1,12 @@
 # Sandpass
 
-Sandpass is a web-based password manager based on the Keepass database format
-that runs on [Sandstorm](https://sandstorm.io/).
+Sandpass is a web-based password manager based on the [KeePass][keepass]
+database format that runs on [Sandstorm][sandstorm].
 
-Sandpass is still under development, so expect some rough edges. As such,
-Sandpass has not undergone a formal security review.
+Sandpass has not undergone a formal security review: use at your own risk.
+
+[keepass]: http://keepass.info/
+[sandstorm]: https://sandstorm.io/
 
 ## Installing
 
