@@ -23,7 +23,6 @@ const pkgdef :Spk.PackageDefinition = (
     metadata = (
       icons = (
         appGrid = (svg = embed "../icons/appGrid.svg"),
-        appGrid = (svg = embed "../icons/appGrid.svg"),
         grain = (svg = embed "../icons/grain.svg"),
         market = (svg = embed "../icons/market.svg"),
       ),
