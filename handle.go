@@ -26,7 +26,7 @@ import (
 
 var (
 	staticDir        = flag.String("static_dir", ".", "path to static resources (should be the project directory for development)")
-	maxFormMemory    = flag.Int64("max_form_memory", 512*1024, "number of bytes of a form to keep in memory before writing out to temporary files")
+	maxRequestSize   = flag.Int64("max_request_size", 2<<20, "number of bytes to limit requests to")
 	checkPermissions = flag.Bool("permissions", true, "whether to check Sandstorm permissions (can be disabled for development)")
 )
 
@@ -52,13 +52,12 @@ func (ah appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Permission denied", http.StatusForbidden)
 		return
 	}
-	cleanup, err := parseMultipartForm(r)
-	if err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, *maxRequestSize)
+	if err := parseMultipartForm(r); err != nil {
 		log.Printf("%s %s fail form parse: %v", r.Method, r.URL.Path, err)
 		http.Error(w, "could not parse form", http.StatusBadRequest)
 		return
 	}
-	defer cleanup()
 	stats := responsestats.New(w)
 	err = ah.f(stats, r)
 	if err != nil {
@@ -82,17 +81,17 @@ func (ah appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func parseMultipartForm(r *http.Request) (remove func(), err error) {
-	err = r.ParseMultipartForm(*maxFormMemory)
+func parseMultipartForm(r *http.Request) error {
+	err := r.ParseMultipartForm(*maxRequestSize)
 	if err == http.ErrNotMultipart {
-		return func() {}, nil
+		return nil
 	}
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return func() {
-		if err := r.MultipartForm.RemoveAll(); err != nil {
-			log.Println("form cleanup:", err)
-		}
-	}, nil
+	if err := r.MultipartForm.RemoveAll(); err != nil {
+		// This is likely to never occur, since the request should be limited to maxRequestSize.
+		log.Println("form cleanup:", err)
+	}
+	return nil
 }
