@@ -59,7 +59,7 @@ func (ah appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	stats := responsestats.New(w)
-	err = ah.f(stats, r)
+	err := ah.f(stats, r)
 	if err != nil {
 		if userErrorMessage(err) == "" {
 			log.Printf("%s %s server error: %v", r.Method, r.URL.Path, err)
