@@ -34,6 +34,11 @@ var (
 type staticFileHandler string
 
 func (h staticFileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !(r.Method == "GET" || r.Method == "HEAD") {
+		w.Header().Set("Allow", "GET, HEAD")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 	http.ServeFile(w, r, filepath.Join(*staticDir, string(h)))
 }
 
