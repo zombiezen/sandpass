@@ -61,8 +61,10 @@
       </div>
       <div>
         <button type="button" data-href="
-            {{- if .NewGroup -}}
+            {{- if and .NewGroup .Parent.IsRoot -}}
               {{- route "listGroups" -}}
+            {{- else if .NewGroup -}}
+              {{- route "viewGroup" "gid" .Parent.ID -}}
             {{- else -}}
               {{- route "viewGroup" "gid" .Group.ID -}}
             {{- end -}}">Cancel</button>
