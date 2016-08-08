@@ -1,3 +1,17 @@
+# v1.0.0-rc1
+
+* Features
+  * Search (#3)
+  * Password generation (#11)
+  * Deletion of entries (#5)
+  * Deletion of entire database (#8)
+  * Moving entities and groups between groups (#15)
+  * Creating, editing, and deleting groups (#4)
+  * Separate out management role (#18)
+* Bug Fixes
+  * Preserve attachments in existing KeePass databases (#12)
+  * Clear sessions from memory shortly after expiring (#14)
+
 # v0.2.2
 
 * New icon (thanks @neynah)
