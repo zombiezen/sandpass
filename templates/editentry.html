@@ -26,15 +26,15 @@
   <div class="pageBody">
     {{if not .Entry.UUID.IsZero}}
     <div class="actionBar">
-      <button data-href="{{route "viewEntry" "gid" .Group.ID "uuid" .Entry.UUID}}">View</button>
-      <button data-href="{{route "confirmDeleteEntry" "gid" .Group.ID "uuid" .Entry.UUID}}">Delete</button>
+      <button data-href="{{route "viewEntry" "uuid" .Entry.UUID}}">View</button>
+      <button data-href="{{route "confirmDeleteEntry" "uuid" .Entry.UUID}}">Delete</button>
     </div>
     {{end}}
     <form method="POST" action="
         {{- if .Entry.UUID.IsZero -}}
-          {{- route "newEntry" "gid" .Group.ID -}}
+          {{- route "newEntry" -}}
         {{- else -}}
-          {{- route "editEntry" "gid" .Group.ID "uuid" .Entry.UUID -}}
+          {{- route "editEntry" "uuid" .Entry.UUID -}}
         {{- end -}}">
       <div class="sandpassFields">
         <div class="sandpassFieldGroup">
@@ -84,7 +84,7 @@
             {{- if .Entry.UUID.IsZero -}}
               {{- route "viewGroup" "gid" .Group.ID -}}
             {{- else -}}
-              {{- route "viewEntry" "gid" .Group.ID "uuid" .Entry.UUID -}}
+              {{- route "viewEntry" "uuid" .Entry.UUID -}}
             {{- end -}}">Cancel</button>
         <input type="submit" value="Save">
       </div>

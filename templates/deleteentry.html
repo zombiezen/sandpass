@@ -14,8 +14,8 @@
   <div class="pageBody">
     <p>Are you sure you want to delete "{{.Entry.Title}}"?  This action cannot be undone.</p>
     <div>
-      <form method="POST" action="{{route "deleteEntry" "gid" .Group.ID "uuid" .Entry.UUID}}">
-        <button type="button" data-href="{{route "viewEntry" "gid" .Group.ID "uuid" .Entry.UUID}}">Cancel</button>
+      <form method="POST" action="{{route "deleteEntry" "uuid" .Entry.UUID}}">
+        <button type="button" data-href="{{route "viewEntry" "uuid" .Entry.UUID}}">Cancel</button>
         <input type="submit" value="Delete">
       </form>
     </div>

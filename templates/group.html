@@ -12,7 +12,7 @@
     <div class="actionBar">
       {{template "searchbox.html"}}
       {{if .Permissions.Has "write"}}
-        <button data-href="{{route "newEntryForm" "gid" .Group.ID}}">New Entry</button>
+        <button data-href="{{route "newEntryForm"}}?parent={{.Group.ID}}">New Entry</button>
         <button data-href="{{route "newGroupForm"}}?parent={{.Group.ID}}">New Group</button>
         <button data-href="{{route "editGroupForm" "gid" .Group.ID}}">Edit Group</button>
         <button data-href="{{route "confirmDeleteGroup" "gid" .Group.ID}}"
@@ -21,7 +21,7 @@
     </div>
     <ul>
       {{range sortEntries .Group.Entries}}
-      <li><a href="{{route "viewEntry" "gid" $.Group.ID "uuid" .UUID}}">{{.Title}}</a></li>
+      <li><a href="{{route "viewEntry" "uuid" .UUID}}">{{.Title}}</a></li>
       {{end}}
     </ul>
   </div>

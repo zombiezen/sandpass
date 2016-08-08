@@ -17,7 +17,6 @@ package main
 import (
 	"errors"
 	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -127,5 +126,9 @@ func (e rootRedirectError) StatusCode() int {
 }
 
 func (e rootRedirectError) RedirectURL() string {
-	return "/?error=" + url.QueryEscape(e.UserError())
+	u, _ := router.Get("root").URL()
+	q := u.Query()
+	q.Set("error", e.UserError())
+	u.RawQuery = q.Encode()
+	return u.String()
 }

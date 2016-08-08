@@ -18,7 +18,7 @@
     {{if .Results}}
     <ul>
       {{range .Results}}
-      <li><a href="{{route "viewEntry" "gid" .Entry.Parent.ID "uuid" .Entry.UUID}}">{{.Entry.Title}}</a></li>
+      <li><a href="{{route "viewEntry" "uuid" .Entry.UUID}}">{{.Entry.Title}}</a></li>
       {{end}}
     </ul>
     {{else if .Query}}

@@ -102,30 +102,34 @@ func initDatabase() error {
 func initHandlers() {
 	r := mux.NewRouter()
 
-	// App handlers
-	r.Handle("/", appHandler{f: index})
+	r.Handle("/", appHandler{f: index}).Name("root")
 	r.Handle("/search", appHandler{f: handleSearch}).Name("search")
-	r.Handle("/groups", appHandler{f: listGroups}).Name("listGroups")
-	r.Handle("/newgroup", appHandler{f: postGroupForm, perm: "write"}).Methods("GET").Name("newGroupForm")
-	r.Handle("/newgroup", appHandler{f: postGroup, perm: "write"}).Methods("POST").Name("newGroup")
 	r.Handle("/nuke", appHandler{f: confirmNuke, perm: "init"}).Methods("GET").Name("confirmNuke")
 	r.Handle("/nuke", appHandler{f: nuke, perm: "init"}).Methods("POST").Name("nuke")
-	r.Handle("/groups/{gid}", appHandler{f: viewGroup}).Methods("GET").Name("viewGroup")
-	r.Handle("/groups/{gid}", appHandler{f: deleteGroup, perm: "write"}).Methods("DELETE")
-	rGroup := r.PathPrefix("/groups/{gid}").Subrouter()
+
+	rGroupDir := r.PathPrefix("/g").Subrouter()
+	rGroupDir.Handle("/", appHandler{f: listGroups}).Methods("GET").Name("listGroups")
+	rGroupDir.Handle("/", appHandler{f: postGroup, perm: "write"}).Methods("POST").Name("newGroup")
+	rGroupDir.Handle("/new", appHandler{f: postGroupForm, perm: "write"}).Methods("GET").Name("newGroupForm")
+	rGroupDir.Handle("/{gid}", appHandler{f: viewGroup}).Methods("GET").Name("viewGroup")
+	rGroupDir.Handle("/{gid}", appHandler{f: postGroup, perm: "write"}).Methods("POST").Name("editGroup")
+	rGroupDir.Handle("/{gid}", appHandler{f: deleteGroup, perm: "write"}).Methods("DELETE")
+	rGroup := rGroupDir.PathPrefix("/{gid}").Subrouter()
 	rGroup.Handle("/edit", appHandler{f: postGroupForm, perm: "write"}).Methods("GET").Name("editGroupForm")
-	rGroup.Handle("/edit", appHandler{f: postGroup, perm: "write"}).Methods("POST").Name("editGroup")
 	rGroup.Handle("/delete", appHandler{f: confirmDeleteGroup, perm: "write"}).Methods("GET").Name("confirmDeleteGroup")
 	rGroup.Handle("/delete", appHandler{f: deleteGroup, perm: "write"}).Methods("POST").Name("deleteGroup")
-	rGroup.Handle("/newentry", appHandler{f: postEntryForm, perm: "write"}).Methods("GET").Name("newEntryForm")
-	rGroup.Handle("/newentry", appHandler{f: postEntry, perm: "write"}).Methods("POST").Name("newEntry")
-	rGroup.Handle("/entry/{uuid}", appHandler{f: viewEntry}).Methods("GET").Name("viewEntry")
-	rGroup.Handle("/entry/{uuid}", appHandler{f: deleteEntry, perm: "write"}).Methods("DELETE")
-	rEntry := rGroup.PathPrefix("/entry/{uuid}").Subrouter()
+
+	rEntryDir := r.PathPrefix("/entry").Subrouter()
+	rEntryDir.Handle("/", appHandler{f: postEntry, perm: "write"}).Methods("POST").Name("newEntry")
+	rEntryDir.Handle("/new", appHandler{f: postEntryForm, perm: "write"}).Methods("GET").Name("newEntryForm")
+	rEntryDir.Handle("/{uuid}", appHandler{f: viewEntry}).Methods("GET").Name("viewEntry")
+	rEntryDir.Handle("/{uuid}", appHandler{f: postEntry, perm: "write"}).Methods("POST").Name("editEntry")
+	rEntryDir.Handle("/{uuid}", appHandler{f: deleteEntry, perm: "write"}).Methods("DELETE")
+	rEntry := rEntryDir.PathPrefix("/{uuid}").Subrouter()
 	rEntry.Handle("/edit", appHandler{f: postEntryForm, perm: "write"}).Methods("GET").Name("editEntryForm")
-	rEntry.Handle("/edit", appHandler{f: postEntry, perm: "write"}).Methods("POST").Name("editEntry")
 	rEntry.Handle("/delete", appHandler{f: confirmDeleteEntry, perm: "write"}).Methods("GET").Name("confirmDeleteEntry")
 	rEntry.Handle("/delete", appHandler{f: deleteEntry, perm: "write"}).Methods("POST").Name("deleteEntry")
+
 	meta := r.PathPrefix("/_").Subrouter()
 	meta.Handle("/newdb", appHandler{f: newDB, perm: "init"}).Methods("POST").Name("newDB")
 	meta.Handle("/start", appHandler{f: startSession}).Methods("POST").Name("startSession")
@@ -165,35 +169,50 @@ func gcSessions() {
 	}
 }
 
-type requestParams struct {
-	g *keepass.Group
-	e *keepass.Entry
+func requestGroup(db *keepass.Database, vars map[string]string) (*keepass.Group, error) {
+	if vars["gid"] == "" {
+		return nil, nil
+	}
+	gid, err := strconv.ParseUint(vars["gid"], 10, 32)
+	if err != nil {
+		return nil, notFoundError{}
+	}
+	g := db.FindGroup(uint32(gid))
+	if g == nil {
+		return nil, notFoundError{}
+	}
+	return g, nil
 }
 
-func extractRequestParams(db *keepass.Database, r *http.Request) (requestParams, error) {
-	v := mux.Vars(r)
-	var p requestParams
-	if v["gid"] != "" {
-		gid, err := strconv.ParseUint(v["gid"], 10, 32)
-		if err != nil {
-			return requestParams{}, notFoundError{}
-		}
-		p.g = db.FindGroup(uint32(gid))
-		if p.g == nil {
-			return requestParams{}, notFoundError{}
-		}
+func requestEntry(db *keepass.Database, vars map[string]string) (*keepass.Entry, error) {
+	if vars["uuid"] == "" {
+		return nil, nil
 	}
-	if v["uuid"] != "" {
-		uuid, err := uuids.Parse(v["uuid"])
-		if err != nil {
-			return requestParams{}, notFoundError{}
-		}
-		p.e = db.Find(uuid)
-		if p.e == nil {
-			return requestParams{}, notFoundError{}
-		}
+	uuid, err := uuids.Parse(vars["uuid"])
+	if err != nil {
+		return nil, notFoundError{}
 	}
-	return p, nil
+	e := db.Find(uuid)
+	if e == nil {
+		return nil, notFoundError{}
+	}
+	return e, nil
+}
+
+func requestParentGroup(db *keepass.Database, form url.Values) (*keepass.Group, error) {
+	f := form.Get("parent")
+	if f == "root" {
+		return db.Root(), nil
+	}
+	id, err := strconv.ParseUint(f, 10, 32)
+	if err != nil {
+		return nil, invalidParentError{f}
+	}
+	g := db.FindGroup(uint32(id))
+	if g == nil {
+		return nil, invalidParentError{f}
+	}
+	return g, nil
 }
 
 func index(w http.ResponseWriter, r *http.Request) error {
@@ -208,8 +227,7 @@ func index(w http.ResponseWriter, r *http.Request) error {
 	mu.Unlock()
 
 	if exists && !hasPassword {
-		http.Redirect(w, r, "/groups", http.StatusSeeOther)
-		return nil
+		return redirectRoute(w, r, "listGroups")
 	}
 	return tmpl.ExecuteTemplate(w, "index.html", struct {
 		FirstTime   bool
@@ -245,7 +263,7 @@ func viewGroup(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	params, err := extractRequestParams(db, r)
+	g, err := requestGroup(db, mux.Vars(r))
 	if err != nil {
 		return err
 	}
@@ -253,7 +271,7 @@ func viewGroup(w http.ResponseWriter, r *http.Request) error {
 		Group       *keepass.Group
 		Permissions permissions
 	}{
-		Group:       params.g,
+		Group:       g,
 		Permissions: requestPermissions(r),
 	})
 }
@@ -265,7 +283,7 @@ func viewEntry(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	params, err := extractRequestParams(db, r)
+	e, err := requestEntry(db, mux.Vars(r))
 	if err != nil {
 		return err
 	}
@@ -274,8 +292,8 @@ func viewEntry(w http.ResponseWriter, r *http.Request) error {
 		Group       *keepass.Group
 		Permissions permissions
 	}{
-		Entry:       params.e,
-		Group:       params.g,
+		Entry:       e,
+		Group:       e.Parent(),
 		Permissions: requestPermissions(r),
 	})
 }
@@ -287,20 +305,30 @@ func postEntryForm(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	params, err := extractRequestParams(db, r)
+	e, err := requestEntry(db, mux.Vars(r))
 	if err != nil {
 		return err
 	}
-	if params.e == nil {
-		params.e = new(keepass.Entry)
+	var parent *keepass.Group
+	if e == nil {
+		e = new(keepass.Entry)
+		parent, err = requestParentGroup(db, r.Form)
+		if err != nil {
+			return err
+		}
+		if parent.IsRoot() {
+			return invalidParentError{r.Form.Get("parent")}
+		}
+	} else {
+		parent = e.Parent()
 	}
 	return tmpl.ExecuteTemplate(w, "editentry.html", struct {
 		Entry         *keepass.Entry
 		Group         *keepass.Group
 		ParentOptions []groupItem
 	}{
-		Entry:         params.e,
-		Group:         params.g,
+		Entry:         e,
+		Group:         parent,
 		ParentOptions: flattenGroups(nil, db.Root(), 0, nil),
 	})
 }
@@ -309,51 +337,43 @@ func postEntry(w http.ResponseWriter, r *http.Request) error {
 	now := time.Now()
 	mu.Lock()
 	defer mu.Unlock()
-	var p requestParams
-	var newParent *keepass.Group
+	var e *keepass.Entry
 	err := transaction(w, r, func(db *keepass.Database) error {
 		var err error
-		p, err = extractRequestParams(db, r)
+		e, err = requestEntry(db, mux.Vars(r))
 		if err != nil {
 			return err
 		}
-		newParent, err = extractParentGroup(db, r.Form)
+		newParent, err := requestParentGroup(db, r.Form)
 		if err != nil {
 			return err
 		}
-		if p.e == nil {
-			p.e, err = p.g.NewEntry()
+		if e == nil {
+			e, err = newParent.NewEntry()
 			if err != nil {
 				return err
 			}
-			p.e.TimeInfo = keepass.TimeInfo{
+			e.TimeInfo = keepass.TimeInfo{
 				CreationTime:   now,
 				LastAccessTime: now,
 			}
-		} else if parent := p.e.Parent(); newParent != parent {
-			if err := p.e.SetParent(newParent); err != nil {
+		} else if parent := e.Parent(); newParent != parent {
+			if err := e.SetParent(newParent); err != nil {
 				return err
 			}
 		}
-		p.e.Title = r.FormValue("title")
-		p.e.Username = r.FormValue("username")
-		p.e.Password = r.FormValue("password")
-		p.e.URL = r.FormValue("url")
-		p.e.Notes = r.FormValue("notes")
-		p.e.LastModificationTime = now
+		e.Title = r.FormValue("title")
+		e.Username = r.FormValue("username")
+		e.Password = r.FormValue("password")
+		e.URL = r.FormValue("url")
+		e.Notes = r.FormValue("notes")
+		e.LastModificationTime = now
 		return nil
 	})
 	if err != nil {
 		return err
 	}
-	u, err := router.GetRoute("viewEntry").URL(
-		"gid", strconv.FormatUint(uint64(newParent.ID), 10),
-		"uuid", p.e.UUID.String())
-	if err != nil {
-		return err
-	}
-	http.Redirect(w, r, u.String(), http.StatusSeeOther)
-	return nil
+	return redirectRoute(w, r, "viewEntry", "uuid", e.UUID.String())
 }
 
 func confirmDeleteEntry(w http.ResponseWriter, r *http.Request) error {
@@ -363,7 +383,7 @@ func confirmDeleteEntry(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	params, err := extractRequestParams(db, r)
+	e, err := requestEntry(db, mux.Vars(r))
 	if err != nil {
 		return err
 	}
@@ -371,22 +391,22 @@ func confirmDeleteEntry(w http.ResponseWriter, r *http.Request) error {
 		Entry *keepass.Entry
 		Group *keepass.Group
 	}{
-		Entry: params.e,
-		Group: params.g,
+		Entry: e,
+		Group: e.Parent(),
 	})
 }
 
 func deleteEntry(w http.ResponseWriter, r *http.Request) error {
 	mu.Lock()
 	defer mu.Unlock()
-	var p requestParams
+	var parent *keepass.Group
 	err := transaction(w, r, func(db *keepass.Database) error {
-		var err error
-		p, err = extractRequestParams(db, r)
+		e, err := requestEntry(db, mux.Vars(r))
 		if err != nil {
 			return err
 		}
-		p.g.RemoveEntry(p.e)
+		parent = e.Parent()
+		parent.RemoveEntry(e)
 		return nil
 	})
 	if err != nil {
@@ -396,12 +416,7 @@ func deleteEntry(w http.ResponseWriter, r *http.Request) error {
 		w.WriteHeader(http.StatusNoContent)
 		return nil
 	}
-	u, err := router.GetRoute("viewGroup").URL("gid", strconv.FormatUint(uint64(p.g.ID), 10))
-	if err != nil {
-		return err
-	}
-	http.Redirect(w, r, u.String(), http.StatusSeeOther)
-	return nil
+	return redirectRoute(w, r, "viewGroup", "gid", strconv.FormatUint(uint64(parent.ID), 10))
 }
 
 func postGroupForm(w http.ResponseWriter, r *http.Request) error {
@@ -411,7 +426,7 @@ func postGroupForm(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	rp, err := extractRequestParams(db, r)
+	g, err := requestGroup(db, mux.Vars(r))
 	if err != nil {
 		return err
 	}
@@ -422,18 +437,18 @@ func postGroupForm(w http.ResponseWriter, r *http.Request) error {
 		ParentOptions []groupItem
 	}
 	var exclude func(*keepass.Group) bool
-	if rp.g == nil {
+	if g == nil {
 		params.Group = new(keepass.Group)
-		parent, err := extractParentGroup(db, r.Form)
+		parent, err := requestParentGroup(db, r.Form)
 		if err != nil {
 			return err
 		}
 		params.Parent = parent
 		params.NewGroup = true
 	} else {
-		params.Group = rp.g
-		params.Parent = rp.g.Parent()
-		exclude = func(g *keepass.Group) bool { return g == rp.g }
+		params.Group = g
+		params.Parent = g.Parent()
+		exclude = func(gg *keepass.Group) bool { return gg == g }
 	}
 	root := db.Root()
 	params.ParentOptions = []groupItem{{root, 0}}
@@ -445,57 +460,36 @@ func postGroup(w http.ResponseWriter, r *http.Request) error {
 	now := time.Now()
 	mu.Lock()
 	defer mu.Unlock()
-	var p requestParams
+	var g *keepass.Group
 	err := transaction(w, r, func(db *keepass.Database) error {
 		var err error
-		p, err = extractRequestParams(db, r)
+		g, err = requestGroup(db, mux.Vars(r))
 		if err != nil {
 			return err
 		}
-		newParent, err := extractParentGroup(db, r.Form)
+		newParent, err := requestParentGroup(db, r.Form)
 		if err != nil {
 			return err
 		}
-		if p.g == nil {
-			p.g = newParent.NewSubgroup()
-			p.g.TimeInfo = keepass.TimeInfo{
+		if g == nil {
+			g = newParent.NewSubgroup()
+			g.TimeInfo = keepass.TimeInfo{
 				CreationTime:   now,
 				LastAccessTime: now,
 			}
-		} else if parent := p.g.Parent(); newParent != parent {
-			if err := p.g.SetParent(newParent); err != nil {
+		} else if parent := g.Parent(); newParent != parent {
+			if err := g.SetParent(newParent); err != nil {
 				return err
 			}
 		}
-		p.g.Name = r.FormValue("name")
-		p.g.LastModificationTime = now
+		g.Name = r.FormValue("name")
+		g.LastModificationTime = now
 		return nil
 	})
 	if err != nil {
 		return err
 	}
-	u, err := router.GetRoute("viewGroup").URL("gid", strconv.FormatUint(uint64(p.g.ID), 10))
-	if err != nil {
-		return err
-	}
-	http.Redirect(w, r, u.String(), http.StatusSeeOther)
-	return nil
-}
-
-func extractParentGroup(db *keepass.Database, form url.Values) (*keepass.Group, error) {
-	f := form.Get("parent")
-	if f == "root" {
-		return db.Root(), nil
-	}
-	id, err := strconv.ParseUint(f, 10, 32)
-	if err != nil {
-		return nil, invalidParentError{f}
-	}
-	g := db.FindGroup(uint32(id))
-	if g == nil {
-		return nil, invalidParentError{f}
-	}
-	return g, nil
+	return redirectRoute(w, r, "viewGroup", "gid", strconv.FormatUint(uint64(g.ID), 10))
 }
 
 func confirmDeleteGroup(w http.ResponseWriter, r *http.Request) error {
@@ -505,29 +499,26 @@ func confirmDeleteGroup(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	params, err := extractRequestParams(db, r)
+	g, err := requestGroup(db, mux.Vars(r))
 	if err != nil {
 		return err
 	}
 	return tmpl.ExecuteTemplate(w, "deletegroup.html", struct {
 		Group *keepass.Group
 	}{
-		Group: params.g,
+		Group: g,
 	})
 }
 
 func deleteGroup(w http.ResponseWriter, r *http.Request) error {
 	mu.Lock()
 	defer mu.Unlock()
-	var p requestParams
 	err := transaction(w, r, func(db *keepass.Database) error {
-		var err error
-		p, err = extractRequestParams(db, r)
+		g, err := requestGroup(db, mux.Vars(r))
 		if err != nil {
 			return err
 		}
-		parent := p.g.Parent()
-		return parent.RemoveSubgroup(p.g)
+		return g.Parent().RemoveSubgroup(g)
 	})
 	if err != nil {
 		return err
@@ -536,12 +527,7 @@ func deleteGroup(w http.ResponseWriter, r *http.Request) error {
 		w.WriteHeader(http.StatusNoContent)
 		return nil
 	}
-	u, err := router.GetRoute("listGroups").URL()
-	if err != nil {
-		return err
-	}
-	http.Redirect(w, r, u.String(), http.StatusSeeOther)
-	return nil
+	return redirectRoute(w, r, "listGroups")
 }
 
 func confirmNuke(w http.ResponseWriter, r *http.Request) error {
@@ -555,8 +541,7 @@ func nuke(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	sessions.clear()
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-	return nil
+	return redirectRoute(w, r, "root")
 }
 
 func newDB(w http.ResponseWriter, r *http.Request) error {
@@ -601,8 +586,7 @@ func newDB(w http.ResponseWriter, r *http.Request) error {
 	sessions.new(w, sessionData{
 		key: db.ComputedKey(),
 	})
-	http.Redirect(w, r, "/groups", http.StatusSeeOther)
-	return nil
+	return redirectRoute(w, r, "listGroups")
 }
 
 func prepopulateDB(db *keepass.Database, now time.Time) {
@@ -679,8 +663,7 @@ func startSession(w http.ResponseWriter, r *http.Request) error {
 	sessions.new(w, sessionData{
 		key: db.ComputedKey(),
 	})
-	http.Redirect(w, r, "/groups", http.StatusSeeOther)
-	return nil
+	return redirectRoute(w, r, "listGroups")
 }
 
 // readCredentials gets credentials from a request.
@@ -807,6 +790,19 @@ func templateRoute(name string, pairs ...interface{}) (template.URL, error) {
 		return "", fmt.Errorf("route %q: %v", name, err)
 	}
 	return template.URL(u.String()), nil
+}
+
+func redirectRoute(w http.ResponseWriter, r *http.Request, name string, pairs ...string) error {
+	route := router.Get(name)
+	if route == nil {
+		return fmt.Errorf("redirect: no route %q", name)
+	}
+	u, err := route.URL(pairs...)
+	if err != nil {
+		return fmt.Errorf("redirect: route %q: %v", name, err)
+	}
+	http.Redirect(w, r, u.String(), http.StatusSeeOther)
+	return nil
 }
 
 type entriesByName []*keepass.Entry

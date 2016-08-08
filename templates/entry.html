@@ -14,8 +14,8 @@
   <div class="pageBody">
     {{if .Permissions.Has "write"}}
       <div class="actionBar">
-        <button data-href="{{route "editEntryForm" "gid" .Group.ID "uuid" .Entry.UUID}}">Edit</button>
-        <button data-href="{{route "confirmDeleteEntry" "gid" .Group.ID "uuid" .Entry.UUID}}">Delete</button>
+        <button data-href="{{route "editEntryForm" "uuid" .Entry.UUID}}">Edit</button>
+        <button data-href="{{route "confirmDeleteEntry" "uuid" .Entry.UUID}}">Delete</button>
       </div>
     {{end}}
     {{with .Entry}}
