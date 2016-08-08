@@ -52,12 +52,8 @@ const pkgdef :Spk.PackageDefinition = (
       shortDescription = (defaultText = "Password manager"),
 
       screenshots = [
-        # Screenshots to use for marketing purposes.  Examples below.
-        # Sizes are given in device-independent pixels, so if you took these
-        # screenshots on a Retina-style high DPI screen, divide each dimension by two.
-
-        #(width = 746, height = 795, jpeg = embed "path/to/screenshot-1.jpeg"),
-        #(width = 640, height = 480, png = embed "path/to/screenshot-2.png"),
+        (width = 698, height = 704, png = embed "screenshot-list.png"),
+        (width = 791, height = 704, png = embed "screenshot-edit.png"),
       ],
       changeLog = (defaultText = embed "../CHANGELOG.md"),
     ),
