@@ -17,17 +17,27 @@
     {{end}}
     <form method="POST" action="{{route "newDB"}}" enctype="multipart/form-data">
       {{template "xsrfinput.html" .XSRFToken}}
-      <div class="formGroup">
-        <label>Existing database (optional)</label>
-        <input type="file" name="database">
-      </div>
-      <div class="formGroup">
-        <label>Password</label>
-        <input type="password" name="password">
-      </div>
-      <div class="formGroup">
-        <label>Key File</label>
-        <input type="file" name="keyfile" accept=".key">
+      <div class="sandpassFields">
+        <div class="sandpassFieldGroup">
+          <label for="newDBDatabase" class="sandpassFieldName">
+            Existing database (optional)
+          </label>
+          <div class="sandpassField">
+            <input type="file" id="newDBDatabase" name="database" accept=".kdb">
+          </div>
+        </div>
+        <div class="sandpassFieldGroup">
+          <label for="newDBPassword" class="sandpassFieldName">Password</label>
+          <div class="sandpassField">
+            <input type="password" id="newDBPassword" name="password" class="sandpassFieldTextbox">
+          </div>
+        </div>
+        <div class="sandpassFieldGroup">
+          <label for="newDBKeyFile" class="sandpassFieldName">Key File</label>
+          <div class="sandpassField">
+            <input type="file" id="newDBKeyFile" name="keyfile" accept=".key">
+          </div>
+        </div>
       </div>
       <input type="submit" value="Create">
     </form>
@@ -45,13 +55,19 @@
     {{end}}
     <form method="POST" action="{{route "startSession"}}" enctype="multipart/form-data">
       {{template "xsrfinput.html" .XSRFToken}}
-      <div class="formGroup">
-        <label>Password</label>
-        <input type="password" name="password">
-      </div>
-      <div class="formGroup">
-        <label>Key File</label>
-        <input type="file" name="keyfile" accept=".key">
+      <div class="sandpassFields">
+        <div class="sandpassFieldGroup">
+          <label for="startPassword" class="sandpassFieldName">Password</label>
+          <div class="sandpassField">
+            <input type="password" id="startPassword" name="password" class="sandpassFieldTextbox">
+          </div>
+        </div>
+        <div class="sandpassFieldGroup">
+          <label for="startKeyFile" class="sandpassFieldName">Key File</label>
+          <div class="sandpassField">
+            <input type="file" id="startKeyFile" name="keyfile" accept=".key">
+          </div>
+        </div>
       </div>
       <input type="submit" value="Open">
     </form>
