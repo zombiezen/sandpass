@@ -85,6 +85,7 @@ html, body {
 
 .pageBody {
   background: white;
+  color: rgba(0, 0, 0, 0.87);
   min-height: 150px;
   padding: 8px 16px;
 }
