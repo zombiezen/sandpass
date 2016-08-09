@@ -36,6 +36,7 @@
         {{- else -}}
           {{- route "editEntry" "uuid" .Entry.UUID -}}
         {{- end -}}">
+      {{template "xsrfinput.html" .XSRFToken}}
       <div class="sandpassFields">
         <div class="sandpassFieldGroup">
           <label for="entryParent" class="sandpassFieldName">Group</label>

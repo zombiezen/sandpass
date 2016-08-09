@@ -12,6 +12,7 @@
     <p>Are you sure you want to delete "{{.Group.Name}}"?  This action cannot be undone.</p>
     <div>
       <form method="POST" action="{{route "deleteGroup" "gid" .Group.ID}}">
+        {{template "xsrfinput.html" .XSRFToken}}
         <button type="button" data-href="{{route "viewGroup" "gid" .Group.ID}}">Cancel</button>
         <input type="submit" value="Delete">
       </form>

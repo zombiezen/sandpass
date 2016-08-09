@@ -15,7 +15,10 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -28,6 +31,7 @@ var (
 	staticDir        = flag.String("static_dir", ".", "path to static resources (should be the project directory for development)")
 	maxRequestSize   = flag.Int64("max_request_size", 2<<20, "number of bytes to limit requests to")
 	checkPermissions = flag.Bool("permissions", true, "whether to check Sandstorm permissions (can be disabled for development)")
+	xsrfTokenSize    = flag.Int("xsrf_token_size", 33, "size of the XSRF tokens sent to the client (in bytes)")
 )
 
 // staticFileHandler serves a file from the static directory.
@@ -58,6 +62,13 @@ func (ah appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not parse form", http.StatusBadRequest)
 		return
 	}
+	if !(r.Method == "GET" || r.Method == "HEAD" || r.Method == "OPTIONS" || r.Method == "TRACE") {
+		if err := checkXSRF(r); err != nil {
+			log.Printf("%s %s client error: %v", r.Method, r.URL.Path, err)
+			http.Error(w, userErrorMessage(err), errorStatusCode(err))
+			return
+		}
+	}
 	stats := responsestats.New(w)
 	err := ah.f(stats, r)
 	if err != nil {
@@ -77,7 +88,6 @@ func (ah appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			http.Error(w, msg, errorStatusCode(err))
 		}
-		return
 	}
 }
 
@@ -92,6 +102,45 @@ func parseMultipartForm(r *http.Request) error {
 	if err := r.MultipartForm.RemoveAll(); err != nil {
 		// This is likely to never occur, since the request should be limited to maxRequestSize.
 		log.Println("form cleanup:", err)
+	}
+	return nil
+}
+
+// xsrfCookie is the name of browser cookie containing the session-independent XSRF token.
+const xsrfCookie = "sandpass_xsrf"
+
+const xsrfFormName = "xsrftoken"
+
+// xsrfToken either returns the XSRF token from the cookie or generates
+// a new one and sets the XSRF cookie.
+func xsrfToken(w http.ResponseWriter, r *http.Request) (string, error) {
+	if c, err := r.Cookie(xsrfCookie); err == nil && c.Value != "" {
+		return c.Value, nil
+	} else if err != http.ErrNoCookie && err != nil {
+		return "", fmt.Errorf("read xsrf token: %v", err)
+	}
+	buf := make([]byte, *xsrfTokenSize)
+	if _, err := rand.Read(buf); err != nil {
+		return "", fmt.Errorf("generate xsrf token: %v", err)
+	}
+	tok := base64.StdEncoding.EncodeToString(buf)
+	http.SetCookie(w, &http.Cookie{
+		Name:  xsrfCookie,
+		Value: tok,
+		Path:  "/",
+	})
+	return tok, nil
+}
+
+func checkXSRF(r *http.Request) error {
+	c, err := r.Cookie(xsrfCookie)
+	if err != nil {
+		return xsrfError{err}
+	} else if c.Value == "" {
+		return xsrfError{fmt.Errorf("empty cookie")}
+	}
+	if fv := r.FormValue(xsrfFormName); fv != c.Value {
+		return xsrfError{fmt.Errorf("form value %q does not match cookie %q", fv, c.Value)}
 	}
 	return nil
 }

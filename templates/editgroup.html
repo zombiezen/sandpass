@@ -34,6 +34,7 @@
         {{- else -}}
           {{- route "editGroup" "gid" .Group.ID -}}
         {{- end -}}">
+      {{template "xsrfinput.html" .XSRFToken}}
       <div class="sandpassFields">
         <div class="sandpassFieldGroup">
           <label for="groupParent" class="sandpassFieldName">Group</label>

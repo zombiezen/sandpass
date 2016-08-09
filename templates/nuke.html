@@ -9,6 +9,7 @@
     <p>Are you sure you want to delete <strong>the entire database</strong>?  This action cannot be undone.</p>
     <div>
       <form method="POST" action="{{route "nuke"}}">
+        {{template "xsrfinput.html" .XSRFToken}}
         <button type="button" data-href="{{route "listGroups"}}">Cancel</button>
         <input type="submit" value="Delete">
       </form>

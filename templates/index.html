@@ -16,6 +16,7 @@
       <div class="error">{{.}}</div>
     {{end}}
     <form method="POST" action="{{route "newDB"}}" enctype="multipart/form-data">
+      {{template "xsrfinput.html" .XSRFToken}}
       <div class="formGroup">
         <label>Existing database (optional)</label>
         <input type="file" name="database">
@@ -43,6 +44,7 @@
       <div class="error">{{.}}</div>
     {{end}}
     <form method="POST" action="{{route "startSession"}}" enctype="multipart/form-data">
+      {{template "xsrfinput.html" .XSRFToken}}
       <div class="formGroup">
         <label>Password</label>
         <input type="password" name="password">

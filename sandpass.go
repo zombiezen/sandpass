@@ -229,14 +229,20 @@ func index(w http.ResponseWriter, r *http.Request) error {
 	if exists && !hasPassword {
 		return redirectRoute(w, r, "listGroups")
 	}
+	xtok, err := xsrfToken(w, r)
+	if err != nil {
+		return err
+	}
 	return tmpl.ExecuteTemplate(w, "index.html", struct {
 		FirstTime   bool
 		Error       string
 		Permissions permissions
+		XSRFToken   string
 	}{
 		FirstTime:   !exists,
 		Error:       r.FormValue("error"),
 		Permissions: requestPermissions(r),
+		XSRFToken:   xtok,
 	})
 }
 
@@ -299,6 +305,10 @@ func viewEntry(w http.ResponseWriter, r *http.Request) error {
 }
 
 func postEntryForm(w http.ResponseWriter, r *http.Request) error {
+	xtok, err := xsrfToken(w, r)
+	if err != nil {
+		return err
+	}
 	mu.Lock()
 	defer mu.Unlock()
 	db, err := sessions.dbFromRequest(w, r)
@@ -326,10 +336,12 @@ func postEntryForm(w http.ResponseWriter, r *http.Request) error {
 		Entry         *keepass.Entry
 		Group         *keepass.Group
 		ParentOptions []groupItem
+		XSRFToken     string
 	}{
 		Entry:         e,
 		Group:         parent,
 		ParentOptions: flattenGroups(nil, db.Root(), 0, nil),
+		XSRFToken:     xtok,
 	})
 }
 
@@ -377,6 +389,10 @@ func postEntry(w http.ResponseWriter, r *http.Request) error {
 }
 
 func confirmDeleteEntry(w http.ResponseWriter, r *http.Request) error {
+	xtok, err := xsrfToken(w, r)
+	if err != nil {
+		return err
+	}
 	mu.Lock()
 	defer mu.Unlock()
 	db, err := sessions.dbFromRequest(w, r)
@@ -388,11 +404,13 @@ func confirmDeleteEntry(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return tmpl.ExecuteTemplate(w, "deleteentry.html", struct {
-		Entry *keepass.Entry
-		Group *keepass.Group
+		Entry     *keepass.Entry
+		Group     *keepass.Group
+		XSRFToken string
 	}{
-		Entry: e,
-		Group: e.Parent(),
+		Entry:     e,
+		Group:     e.Parent(),
+		XSRFToken: xtok,
 	})
 }
 
@@ -420,6 +438,10 @@ func deleteEntry(w http.ResponseWriter, r *http.Request) error {
 }
 
 func postGroupForm(w http.ResponseWriter, r *http.Request) error {
+	xtok, err := xsrfToken(w, r)
+	if err != nil {
+		return err
+	}
 	mu.Lock()
 	defer mu.Unlock()
 	db, err := sessions.dbFromRequest(w, r)
@@ -435,7 +457,9 @@ func postGroupForm(w http.ResponseWriter, r *http.Request) error {
 		Parent        *keepass.Group
 		NewGroup      bool
 		ParentOptions []groupItem
+		XSRFToken     string
 	}
+	params.XSRFToken = xtok
 	var exclude func(*keepass.Group) bool
 	if g == nil {
 		params.Group = new(keepass.Group)
@@ -493,6 +517,10 @@ func postGroup(w http.ResponseWriter, r *http.Request) error {
 }
 
 func confirmDeleteGroup(w http.ResponseWriter, r *http.Request) error {
+	xtok, err := xsrfToken(w, r)
+	if err != nil {
+		return err
+	}
 	mu.Lock()
 	defer mu.Unlock()
 	db, err := sessions.dbFromRequest(w, r)
@@ -504,9 +532,11 @@ func confirmDeleteGroup(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return tmpl.ExecuteTemplate(w, "deletegroup.html", struct {
-		Group *keepass.Group
+		Group     *keepass.Group
+		XSRFToken string
 	}{
-		Group: g,
+		Group:     g,
+		XSRFToken: xtok,
 	})
 }
 
@@ -531,7 +561,15 @@ func deleteGroup(w http.ResponseWriter, r *http.Request) error {
 }
 
 func confirmNuke(w http.ResponseWriter, r *http.Request) error {
-	return tmpl.ExecuteTemplate(w, "nuke.html", nil)
+	xtok, err := xsrfToken(w, r)
+	if err != nil {
+		return err
+	}
+	return tmpl.ExecuteTemplate(w, "nuke.html", struct {
+		XSRFToken string
+	}{
+		XSRFToken: xtok,
+	})
 }
 
 func nuke(w http.ResponseWriter, r *http.Request) error {

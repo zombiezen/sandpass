@@ -68,6 +68,22 @@ func (ue userError) UserError() string {
 	return ue.msg
 }
 
+type xsrfError struct {
+	err error
+}
+
+func (xe xsrfError) Error() string {
+	return "check xsrf: " + xe.err.Error()
+}
+
+func (xe xsrfError) UserError() string {
+	return "invalid XSRF token"
+}
+
+func (xe xsrfError) StatusCode() int {
+	return http.StatusBadRequest
+}
+
 type notFoundError struct{}
 
 func (notFoundError) Error() string {
