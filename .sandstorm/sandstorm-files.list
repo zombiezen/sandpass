@@ -38,6 +38,7 @@ opt/app/templates/deletegroup.html
 opt/app/templates/editentry.html
 opt/app/templates/editgroup.html
 opt/app/templates/entry.html
+opt/app/templates/footer.html
 opt/app/templates/group.html
 opt/app/templates/grouplist.html
 opt/app/templates/groups.html

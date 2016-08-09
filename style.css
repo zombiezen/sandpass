@@ -50,6 +50,12 @@ html, body {
   padding: 8px 16px;
 }
 
+.pageFooter {
+  margin: 16px auto;
+  max-width: 500px;
+  text-align: center;
+}
+
 .searchbox {
   display: inline-block;
   margin-right: 16px;
@@ -117,4 +123,14 @@ html, body {
 
 .pwgenOptions {
   margin: 16px 0;
+}
+
+.footerText {
+  color: rgba(0, 0, 0, 0.54);
+  font: 12px/16px Roboto, Helvetica, sans-serif;
+  margin: 4px 0;
+}
+
+.footerLink {
+  color: rgba(0, 0, 0, 0.54);
 }
