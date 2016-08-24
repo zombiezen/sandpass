@@ -1,3 +1,18 @@
+# v1.0.0
+
+* New new icons (thanks again, @neynah. You rock.)
+* Search
+  * Multi-word searches match individual words instead of literal phrases
+  * Searches happen over entry notes, not just titles
+  * Show entry's group in results page
+* Security Precautions
+  * Pages are marked as uncacheable to avoid the user agent potentially storing
+    credentials in clear text
+  * Disabled autocomplete on entry form fields for similar reasons.
+  * Added basic XSRF protection.  Defense in depth here, as Sandstorm protects
+    against XSRF attacks anyway.
+* Minor visual tweaks
+
 # v1.0.0-rc1
 
 * Features
