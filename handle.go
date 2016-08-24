@@ -69,6 +69,7 @@ func (ah appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	w.Header().Set("Cache-Control", "private, no-store")
 	stats := responsestats.New(w)
 	err := ah.f(stats, r)
 	if err != nil {
