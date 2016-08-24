@@ -11,7 +11,7 @@
   <main class="pageBody">
     <div class="actionBar">
       <form method="GET" action="{{route "search"}}">
-        <input type="search" name="q" value="{{.Query}}">
+        <input type="search" name="q" value="{{.Query}}" aria-label="Search box">
         <input type="submit" value="Search">
       </form>
     </div>
