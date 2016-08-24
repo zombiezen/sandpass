@@ -1,0 +1,19 @@
+# This is the official list of people who can contribute
+# (and typically have contributed) code to the Sandpass repository.
+# The AUTHORS file lists the copyright holders; this file
+# lists people.  For example, Sandstorm employees are listed here
+# but not in AUTHORS, because Sandstorm holds the copyright.
+#
+# When adding J Random Contributor's name to this file,
+# either J's name or J's organization's name should be
+# added to the AUTHORS file, depending on whether the
+# copyright belongs to the individual or the corporation.
+
+# Names should be added to this file like so:
+#     Individual's name <submission email address>
+#     Individual's name <submission email address> <email2> <emailN>
+
+# Please keep the list sorted.
+
+Néna Nguyễn <neynah@gmail.com>
+Ross Light <ross@zombiezen.com>
