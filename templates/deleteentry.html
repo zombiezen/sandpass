@@ -2,7 +2,7 @@
 <title>Delete {{.Entry.Title}} - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <div class="pageHeader">
+  <header class="pageHeader">
     <nav class="breadcrumb">
       <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
       {{with .Group}}
@@ -10,8 +10,8 @@
       {{end}}
     </nav>
     <h1 class="pageTitle">Delete {{.Entry.Title}}</h1>
-  </div>
-  <div class="pageBody">
+  </header>
+  <main class="pageBody">
     <p>Are you sure you want to delete "{{.Entry.Title}}"?  This action cannot be undone.</p>
     <div>
       <form method="POST" action="{{route "deleteEntry" "uuid" .Entry.UUID}}">
@@ -20,7 +20,7 @@
         <input type="submit" value="Delete">
       </form>
     </div>
-  </div>
+  </main>
 </div>
 {{template "footer.html"}}
 <script src="/js/init.js"></script>

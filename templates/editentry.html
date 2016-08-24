@@ -8,7 +8,7 @@
 </title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <div class="pageHeader">
+  <header class="pageHeader">
     <nav class="breadcrumb">
       <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
       {{with .Group}}
@@ -22,8 +22,8 @@
       Edit {{.Entry.Title}}
       {{end}}
     </h1>
-  </div>
-  <div class="pageBody">
+  </header>
+  <main class="pageBody">
     {{if not .Entry.UUID.IsZero}}
     <div class="actionBar">
       <button data-href="{{route "viewEntry" "uuid" .Entry.UUID}}">View</button>
@@ -183,7 +183,7 @@
       <div class="error" hidden></div>
       <input type="submit" value="Generate">
     </form>
-  </div>
+  </main>
 </div>
 {{template "footer.html"}}
 <script src="/js/init.js"></script>

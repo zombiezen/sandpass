@@ -2,13 +2,13 @@
 <title>{{.Group.Name}} - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <div class="pageHeader">
+  <header class="pageHeader">
     <nav class="breadcrumb">
       <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
     </nav>
     <h1 class="pageTitle">{{.Group.Name}}</h1>
-  </div>
-  <div class="pageBody">
+  </header>
+  <main class="pageBody">
     <div class="actionBar">
       {{template "searchbox.html"}}
       {{if .Permissions.Has "write"}}
@@ -24,7 +24,7 @@
       <li><a href="{{route "viewEntry" "uuid" .UUID}}">{{.Title}}</a></li>
       {{end}}
     </ul>
-  </div>
+  </main>
 </div>
 {{template "footer.html"}}
 <script src="/js/init.js"></script>

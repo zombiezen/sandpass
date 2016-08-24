@@ -2,10 +2,10 @@
 <title>Delete Database - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <div class="pageHeader">
+  <header class="pageHeader">
     <h1 class="pageTitle noBreadcrumb">Delete Database</h1>
-  </div>
-  <div class="pageBody">
+  </header>
+  <main class="pageBody">
     <p>Are you sure you want to delete <strong>the entire database</strong>?  This action cannot be undone.</p>
     <div>
       <form method="POST" action="{{route "nuke"}}">
@@ -14,7 +14,7 @@
         <input type="submit" value="Delete">
       </form>
     </div>
-  </div>
+  </main>
 </div>
 {{template "footer.html"}}
 <script src="/js/init.js"></script>

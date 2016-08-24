@@ -2,10 +2,10 @@
 <title>Groups - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <div class="pageHeader">
+  <header class="pageHeader">
     <h1 class="pageTitle noBreadcrumb">Groups</h1>
-  </div>
-  <div class="pageBody">
+  </header>
+  <main class="pageBody">
     <div class="actionBar">
       {{template "searchbox.html"}}
       {{if .Permissions.Has "write"}}
@@ -16,7 +16,7 @@
       {{end}}
     </div>
     {{template "grouplist.html" .Root}}
-  </div>
+  </main>
 </div>
 {{template "footer.html"}}
 <script src="/js/init.js"></script>

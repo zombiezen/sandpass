@@ -2,13 +2,13 @@
 <title>Search {{.Query}} - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <div class="pageHeader">
+  <header class="pageHeader">
     <nav class="breadcrumb">
       <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
     </nav>
     <h1 class="pageTitle">Search</h1>
-  </div>
-  <div class="pageBody">
+  </header>
+  <main class="pageBody">
     <div class="actionBar">
       <form method="GET" action="{{route "search"}}">
         <input type="search" name="q" value="{{.Query}}">
@@ -27,7 +27,7 @@
     {{else if .Query}}
     <p>No results.</p>
     {{end}}
-  </div>
+  </main>
 </div>
 {{template "footer.html"}}
 <script src="/js/init.js"></script>

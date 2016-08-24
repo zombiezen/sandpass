@@ -8,7 +8,7 @@
 </title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <div class="pageHeader">
+  <header class="pageHeader">
     <nav class="breadcrumb">
       <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
     </nav>
@@ -19,8 +19,8 @@
       Edit {{.Group.Name}}
       {{end}}
     </h1>
-  </div>
-  <div class="pageBody">
+  </header>
+  <main class="pageBody">
     {{if not .NewGroup}}
     <div class="actionBar">
       <button data-href="{{route "viewGroup" "gid" .Group.ID}}">View</button>
@@ -72,7 +72,7 @@
         <input type="submit" value="Save">
       </div>
     </form>
-  </div>
+  </main>
 </div>
 {{template "footer.html"}}
 <script src="/js/init.js"></script>

@@ -2,7 +2,7 @@
 <title>{{.Entry.Title}} - Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <div class="pageHeader">
+  <header class="pageHeader">
     <nav class="breadcrumb">
       <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
       {{with .Group}}
@@ -10,8 +10,8 @@
       {{end}}
     </nav>
     <h1 class="pageTitle">{{.Entry.Title}}</h1>
-  </div>
-  <div class="pageBody">
+  </header>
+  <main class="pageBody">
     {{if .Permissions.Has "write"}}
       <div class="actionBar">
         <button data-href="{{route "editEntryForm" "uuid" .Entry.UUID}}">Edit</button>
@@ -66,7 +66,7 @@
       {{end}}
     </div>
     {{end}}
-  </div>
+  </main>
 </div>
 {{template "footer.html"}}
 <script src="/js/init.js"></script>

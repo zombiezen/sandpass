@@ -2,10 +2,10 @@
 <title>Sandpass</title>
 <link rel="stylesheet" href="/style.css">
 <div class="pageContainer">
-  <div class="pageHeader">
+  <header class="pageHeader">
     <h1 class="pageTitle noBreadcrumb">Sandpass</h1>
-  </div>
-  <div class="pageBody">
+  </header>
+  <main class="pageBody">
   {{if and .FirstTime (.Permissions.Has "init")}}
     <p>
       Welcome to Sandpass!  Please enter an encryption passphrase for your database
@@ -72,7 +72,7 @@
       <input type="submit" value="Open">
     </form>
   {{end}}
-  </div>
+  </main>
 </div>
 {{template "footer.html"}}
 <script src="/js/init.js"></script>
