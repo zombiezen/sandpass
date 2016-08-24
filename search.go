@@ -48,7 +48,7 @@ func handleSearch(w http.ResponseWriter, r *http.Request) error {
 func search(db *keepass.Database, q *parsedQuery) []*keepass.Entry {
 	var results []*keepass.Entry
 	for _, e := range db.Entries() {
-		if q.matchesText(e.Title) {
+		if q.matchesText(e.Title) || q.matchesText(e.Notes) {
 			results = append(results, e)
 		}
 	}
