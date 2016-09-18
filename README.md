@@ -10,14 +10,11 @@ Sandpass has not undergone a formal security review: use at your own risk.
 
 ## Installing
 
-Once Sandpass is released on the [Sandstorm App Market][app-market], it will be
-a one-click install.  In the meantime, you can download an SPK from one of the
-[releases][releases] and upload it to [Oasis][oasis] or your own Sandstorm
-server by using the "Upload..." button under the Apps tab.
+Install Sandpass from [the Sandstorm App Market][sandpass-app-market],
+or grab the SPK from the [releases][releases] page.
 
-[app-market]: https://apps.sandstorm.io/
+[sandpass-app-market]: https://apps.sandstorm.io/app/rq41p170hcs5rzg66axggv8r90fjcssdky8891kq5s7jcpm1813h
 [releases]: https://github.com/zombiezen/sandpass/releases
-[oasis]: https://oasis.sandstorm.io/
 
 ## Developing
 
