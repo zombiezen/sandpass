@@ -865,6 +865,9 @@ func requestPermissions(r *http.Request) permissions {
 }
 
 func (p permissions) Has(name string) bool {
+	if !*checkPermissions {
+		return true
+	}
 	for _, perm := range p {
 		if perm == name {
 			return true
