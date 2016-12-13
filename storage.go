@@ -19,8 +19,6 @@ import (
 	"os"
 )
 
-// TODO(light): rotate files
-
 // storage manages I/O to a single file.  Only one operation (reading or
 // writing) can be performed at a time.
 type storage struct {
@@ -31,7 +29,7 @@ type storage struct {
 // newStorage creates a storage that points to path.  The file will be
 // created on the first write if it does not exist.
 func newStorage(path string) (*storage, error) {
-	f, err := os.OpenFile(path, os.O_RDWR, 0)
+	f, err := os.OpenFile(path, os.O_RDONLY, 0)
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
@@ -61,21 +59,12 @@ func (st *storage) reader() (io.Reader, error) {
 // writer opens a writer to the file by either creating or truncating it.
 // Closing the returned writer will sync it to disk.
 func (st *storage) writer() (io.WriteCloser, error) {
-	var err error
-	if st.f == nil {
-		st.f, err = os.OpenFile(st.path, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600)
-		if err != nil {
-			return nil, err
-		}
-		return syncWriter{st.f}, nil
-	}
-	if _, err = st.f.Seek(0, os.SEEK_SET); err != nil {
+	path := st.path + "~"
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
 		return nil, err
 	}
-	if err = st.f.Truncate(0); err != nil {
-		return nil, err
-	}
-	return syncWriter{st.f}, nil
+	return writer{f: f, path: path, st: st}, nil
 }
 
 // remove deletes the file on disk.
@@ -83,7 +72,10 @@ func (st *storage) remove() error {
 	if err := os.Remove(st.path); err != nil {
 		return err
 	}
-	st.f = nil
+	if st.f != nil {
+		st.f.Close()
+		st.f = nil
+	}
 	return nil
 }
 
@@ -94,14 +86,31 @@ func (st *storage) Close() error {
 	return st.f.Close()
 }
 
-type syncWriter struct {
-	f *os.File
+type writer struct {
+	f    *os.File
+	path string
+	st   *storage
 }
 
-func (w syncWriter) Write(p []byte) (int, error) {
+func (w writer) Write(p []byte) (int, error) {
 	return w.f.Write(p)
 }
 
-func (w syncWriter) Close() error {
-	return w.f.Sync()
+func (w writer) Close() error {
+	if err := w.f.Sync(); err != nil {
+		w.f.Close()
+		os.Remove(w.path)
+		return err
+	}
+	if err := os.Rename(w.path, w.st.path); err != nil {
+		w.f.Close()
+		os.Remove(w.path)
+		return err
+	}
+	if w.st.f != nil {
+		// Ignore any close errors, since we are replacing it.
+		w.st.f.Close()
+	}
+	w.st.f = w.f
+	return nil
 }
