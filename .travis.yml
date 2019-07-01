@@ -1,9 +1,7 @@
 language: go
 go_import_path: zombiezen.com/go/sandpass
-go:
-- 1.6.2
-
-# Disable automatic Godeps fetching by explicitly setting the install step,
-# since we're using vendor/
-install:
-- go get -t -v ./...
+go: 1.12
+env:
+  global:
+    - GO111MODULE=on
+    - GOPROXY=https://proxy.golang.org/
