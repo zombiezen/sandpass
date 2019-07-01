@@ -18,26 +18,27 @@ or grab the SPK from the [releases][releases] page.
 
 ## Developing
 
-Prerequisite: [Go 1.6](https://golang.org/dl/)
+Prerequisite: [Docker](https://docs.docker.com/install/)
 
 ```
-go get zombiezen.com/go/sandpass
-cd $GOPATH/zombiezen.com/go/sandpass
+git clone https://github.com/zombiezen/sandpass.git
+cd sandpass
 ```
 
 Running as a normal HTTP server:
 
 ```
-sandpass -db=foo.db -listen=localhost:8080 -permissions=false
+docker build -t sandpass .
+docker run --rm -p 8080:8080 sandpass
 ```
 
-Running as a Sandstorm app (requires [vagrant-spk][vagrant-spk-install]):
+Packaging as a Sandstorm app (requires [docker-spk][]):
 
 ```
-vagrant-spk dev
+docker-spk build
 ```
 
-[vagrant-spk-install]: https://docs.sandstorm.io/en/latest/vagrant-spk/installation/
+[docker-spk]: https://github.com/zenhack/docker-spk
 
 ## License
 
