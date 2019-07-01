@@ -22,57 +22,37 @@ const pkgdef :Spk.PackageDefinition = (
 
     metadata = (
       icons = (
-        appGrid = (svg = embed "../icons/appGrid.svg"),
-        grain = (svg = embed "../icons/grain.svg"),
-        market = (svg = embed "../icons/market.svg"),
+        appGrid = (svg = embed "icons/appGrid.svg"),
+        grain = (svg = embed "icons/grain.svg"),
+        market = (svg = embed "icons/market.svg"),
       ),
 
       website = "https://github.com/zombiezen/sandpass",
       codeUrl = "https://github.com/zombiezen/sandpass",
 
       license = (openSource = apache2,
-                 notices = (defaultText = embed "notices.txt")),
+                 notices = (defaultText = embed ".sandstorm/notices.txt")),
 
       categories = [productivity],
 
       author = (
         contactEmail = "ross@zombiezen.com",
 
-        pgpSignature = embed "pgp-signature",
+        pgpSignature = embed ".sandstorm/pgp-signature",
       ),
 
-      pgpKeyring = embed "pgp-keyring",
+      pgpKeyring = embed ".sandstorm/pgp-keyring",
 
-      description = (defaultText = embed "description.md"),
+      description = (defaultText = embed ".sandstorm/description.md"),
       shortDescription = (defaultText = "Password manager"),
 
       screenshots = [
-        (width = 698, height = 704, png = embed "screenshot-list.png"),
-        (width = 791, height = 704, png = embed "screenshot-edit.png"),
+        (width = 698, height = 704, png = embed ".sandstorm/screenshot-list.png"),
+        (width = 791, height = 704, png = embed ".sandstorm/screenshot-edit.png"),
       ],
-      changeLog = (defaultText = embed "../CHANGELOG.md"),
+      changeLog = (defaultText = embed "CHANGELOG.md"),
     ),
   ),
-
-  sourceMap = (
-    searchPath = [
-      ( sourcePath = "." ),  # Search this directory first.
-      ( sourcePath = "/",    # Then search the system root directory.
-        hidePaths = [ "home", "proc", "sys",
-                      "etc/passwd", "etc/hosts", "etc/host.conf",
-                      "etc/nsswitch.conf", "etc/resolv.conf",
-                      "etc/ld.so.cache" ]
-      )
-    ]
-  ),
-
-  fileList = "sandstorm-files.list",
-
-  alwaysInclude = [
-    "opt/app/js",
-    "opt/app/sandpass",
-    "opt/app/templates",
-  ],
 
   bridgeConfig = (
     viewInfo = (
@@ -108,7 +88,7 @@ const pkgdef :Spk.PackageDefinition = (
 );
 
 const launcher :Spk.Manifest.Command = (
-  argv = ["/sandstorm-http-bridge", "8000", "--", "/opt/app/.sandstorm/launcher.sh"],
+  argv = ["/sandstorm-http-bridge", "8080", "--", "/opt/app/sandpass", "-listen=[::]:8080", "-db=/var/keepass.kdb", "-static_dir=/opt/app", "-templates_dir=/opt/app/templates"],
   environ = [
     (key = "PATH", value = "/usr/local/bin:/usr/bin:/bin"),
     (key = "SANDSTORM", value = "1"),

@@ -1,0 +1,19 @@
+/Dockerfile
+/sandpass
+*.spk
+/.sandstorm/
+.git/
+.gitignore
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+*.out
