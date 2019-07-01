@@ -1,0 +1,11 @@
+{
+	// See http://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
+	// Extension identifier format: ${publisher}.${name}.
+
+	// List of extensions which should be recommended for users of this workspace.
+	"recommendations": [
+		"ms-vscode.go",
+		"ms-azuretools.vscode-docker",
+		"xmonader.vscode-capnp"
+	]
+}
