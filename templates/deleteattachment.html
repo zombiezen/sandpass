@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<title>Delete {{.Entry.Title}} - Sandpass</title>
+<link rel="stylesheet" href="/style.css">
+<div class="pageContainer">
+  <header class="pageHeader">
+    <nav class="breadcrumb">
+      <a href="{{route "listGroups"}}" class="breadcrumbLink">Groups</a> &#x279C;
+      {{with .Group}}
+      <a href="{{route "viewGroup" "gid" .ID}}" class="breadcrumbLink">{{.Name}}</a> &#x279C;
+      {{end}}
+    </nav>
+    <h1 class="pageTitle">Delete {{.Entry.Title}} attachment</h1>
+  </header>
+  <main class="pageBody">
+    <p>Are you sure you want to delete "{{.Entry.Attachment.Name}}"?  This action cannot be undone.</p>
+    <div>
+      <form method="POST" action="{{route "deleteAttachment" "uuid" .Entry.UUID}}">
+        {{template "xsrfinput.html" .XSRFToken}}
+        <button type="button" data-href="{{route "viewEntry" "uuid" .Entry.UUID}}">Cancel</button>
+        <input type="submit" value="Delete">
+      </form>
+    </div>
+  </main>
+</div>
+{{template "footer.html"}}
+<script src="/js/init.js"></script>

@@ -44,6 +44,17 @@
         <div class="sandpassField sandpassFieldValue"><a href="{{.}}" target="_blank">{{.}}</a></div>
       </div>
       {{end}}
+      {{if .HasAttachment}}
+      <div class="sandpassFieldGroup">
+        <div class="sandpassFieldName">Attachment</div>
+        <div class="sandpassField sandpassFieldValue">
+          {{- with .Attachment -}}
+            <a href="{{route "downloadAttachment" "uuid" $.Entry.UUID}}">{{.Name}}</a>
+          {{- end -}}
+          <button type="button" data-href="{{route "confirmDeleteAttachment" "uuid" $.Entry.UUID}}">Delete</button>
+        </div>
+      </div>
+      {{end}}
       {{with .Notes}}
       <div class="sandpassFieldGroup">
         <div class="sandpassFieldName">Notes</div>

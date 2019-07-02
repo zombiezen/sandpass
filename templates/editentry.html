@@ -35,6 +35,7 @@
         action="
           {{- if .Entry.UUID.IsZero}}{{route "newEntry" -}}
           {{- else}}{{route "editEntry" "uuid" .Entry.UUID}}{{end}}"
+        enctype="multipart/form-data"
         autocomplete="off">
       {{template "xsrfinput.html" .XSRFToken}}
       <div class="sandpassFields">
@@ -91,6 +92,12 @@
                 id="entryURL"
                 class="sandpassFieldTextbox"
                 autocomplete="off">
+          </div>
+        </div>
+        <div class="sandpassFieldGroup">
+          <label for="entryAttachment" class="sandpassFieldName">Attachment</label>
+          <div class="sandpassField">
+            <input type="file" name="attachment" id="entryAttachment">
           </div>
         </div>
         <div class="sandpassFieldGroup">
