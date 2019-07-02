@@ -26,7 +26,7 @@ limitations under the License.
   font-family: "Roboto";
   font-style: normal;
   font-weight: 700;
-  src: local("Roboto"), url("/fonts/Roboto-Bold.woff") format("woff");
+  src: local("Roboto-Bold"), url("/fonts/Roboto-Bold.woff") format("woff");
   /* TODO(light): unicode-range */
 }
 
