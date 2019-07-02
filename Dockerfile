@@ -53,6 +53,7 @@ VOLUME ["/data"]
 ENTRYPOINT ["/opt/app/sandpass", \
   "-listen=[::]:8080", \
   "-db=/data/keepass.kdb", \
+  "-session_key=/data/session_key.json", \
   "-static_dir=/opt/app", \
   "-templates_dir=/opt/app/templates", \
   "-permissions=false"]

@@ -17,116 +17,238 @@ package main
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
+	"golang.org/x/crypto/nacl/secretbox"
 	"zombiezen.com/go/sandpass/pkg/kdbcrypt"
 	"zombiezen.com/go/sandpass/pkg/keepass"
 )
 
 // Session flags.
-var (
-	sessionExpiry = flag.Duration("session_expiry", 30*time.Minute, "length of time that a session token is valid")
-	tokenSize     = flag.Int("token_size", 33, "size of the session tokens sent to the client (in bytes)")
-)
+func init() {
+	flag.StringVar(&sessions.keyPath, "session_key", "", "path to file to store session key material")
+	flag.DurationVar(&sessions.keyRotation, "session_key_rotation", 12*time.Hour, "minimum duration between generating new session keys")
+	flag.DurationVar(&sessions.expiry, "session_expiry", 30*time.Minute, "length of time that a session token is valid")
+	sessions.now = time.Now
+}
 
 // sessionCookie is the name of browser cookie containing the session token.
 const sessionCookie = "sandpass_session"
 
 type sessionStorage struct {
-	s map[string]*session
+	keyPath     string
+	keyRotation time.Duration
+	expiry      time.Duration
+	now         func() time.Time
 }
 
-// new creates a new session and token.
-func (ss *sessionStorage) new(w http.ResponseWriter, data sessionData) *session {
-	buf := make([]byte, *tokenSize)
-	_, err := rand.Read(buf)
+// new creates a new session.
+func (ss *sessionStorage) new(w http.ResponseWriter, data sessionData) (*session, error) {
+	keyFile, err := ss.refreshKey()
 	if err != nil {
-		// TODO(light): return error?
-		panic(err)
+		return nil, fmt.Errorf("new session: %v", err)
 	}
-	tok := base64.StdEncoding.EncodeToString(buf)
+	var nonce [24]byte
+	if _, err := rand.Read(nonce[:]); err != nil {
+		return nil, fmt.Errorf("new session: %v", err)
+	}
 	s := &session{
-		token:       tok,
-		expires:     time.Now().Add(*sessionExpiry),
-		sessionData: data,
+		Data: sessionData{
+			Key: append([]byte(nil), data.Key...), // defensive copy
+		},
+		Expires: ss.now().Add(ss.expiry),
 	}
-	if ss.s == nil {
-		ss.s = make(map[string]*session)
+	plaintext, err := json.Marshal(s)
+	if err != nil {
+		return nil, fmt.Errorf("new session: %v", err)
 	}
-	ss.s[tok] = s
+	ciphertext := secretbox.Seal(nonce[:], plaintext, &nonce, keyFile.Primary.Key())
 	http.SetCookie(w, &http.Cookie{
-		Name:  sessionCookie,
-		Value: s.token,
-		Path:  "/",
+		Name:   sessionCookie,
+		Value:  base64.StdEncoding.EncodeToString(ciphertext),
+		Path:   "/",
+		MaxAge: int(ss.expiry/time.Second) + 1,
 	})
-	return s
+	return s, nil
 }
 
 func (ss *sessionStorage) dbFromRequest(w http.ResponseWriter, r *http.Request) (*keepass.Database, error) {
 	s := ss.fromRequest(r)
-	if !s.isValid() {
+	if !ss.isValid(s) {
 		// Attempt to decrypt with no credentials, since that shouldn't require the
 		// user to enter credentials.
 		if db, err := openDatabase(nil); err == nil {
-			ss.new(w, sessionData{key: db.ComputedKey()})
+			if _, err := ss.new(w, sessionData{Key: db.ComputedKey()}); err != nil {
+				return nil, err
+			}
 			return db, nil
 		}
 		return nil, errInvalidSession
 	}
 	return openDatabase(&keepass.Options{
-		ComputedKey: s.key,
+		ComputedKey: s.Data.Key,
 	})
 }
 
+// fromRequest obtains the request's session data. If the session information is
+// in any way invalid, fromRequest returns nil. It does not return an error so
+// as to potentially avoid leaking information to an attacker.
 func (ss *sessionStorage) fromRequest(r *http.Request) *session {
-	if ss.s == nil {
+	// Read key file before handling user input.
+	keyFile, err := ss.refreshKey()
+	if err != nil {
 		return nil
 	}
+	primary := keyFile.Primary.Key()
+	secondary := keyFile.Secondary.Key()
+	if secondary == nil {
+		secondary = primary
+	}
+
+	// Decode into binary, splitting nonce from ciphertext.
 	c, err := r.Cookie(sessionCookie)
 	if err != nil {
 		return nil
 	}
-	return ss.s[c.Value]
-}
-
-func (ss *sessionStorage) clear() {
-	for id, s := range ss.s {
-		s.clear()
-		delete(ss.s, id)
+	ciphertext, err := base64.StdEncoding.DecodeString(c.Value)
+	if err != nil {
+		return nil
 	}
+	nonce := new([24]byte)
+	if copy((*nonce)[:], ciphertext) < len(*nonce) {
+		return nil
+	}
+	ciphertext = ciphertext[len(*nonce):]
+	// Attempt to decrypt. Unconditionally unseal twice to avoid potential
+	// timing attacks.
+	plaintext1, ok1 := secretbox.Open(nil, ciphertext, nonce, primary)
+	plaintext2, ok2 := secretbox.Open(nil, ciphertext, nonce, secondary)
+	if !ok1 && !ok2 {
+		return nil
+	}
+	var plaintext []byte
+	if ok1 {
+		plaintext = plaintext1
+	} else {
+		plaintext = plaintext2
+	}
+	s := new(session)
+	if err := json.Unmarshal(plaintext, s); err != nil {
+		return nil
+	}
+	if !ss.now().Before(s.Expires) {
+		return nil
+	}
+	return s
 }
 
-func (ss *sessionStorage) clearInvalid() int {
-	n := 0
-	for id, s := range ss.s {
-		if !s.isValid() {
-			s.clear()
-			delete(ss.s, id)
-			n++
+func (ss *sessionStorage) isValid(s *session) bool {
+	return s != nil && ss.now().Before(s.Expires)
+}
+
+// invalidateAll deletes the session keys. This effectively makes all sessions
+// invalid, since they can no longer be decrypted.
+func (ss *sessionStorage) invalidateAll() error {
+	if err := os.Remove(ss.keyPath); err != nil {
+		return fmt.Errorf("invalidate sessions: %v", err)
+	}
+	return nil
+}
+
+// refreshKey loads the keys from persistent storage, rotating them
+// if necessary.
+func (ss *sessionStorage) refreshKey() (*sessionKeyFile, error) {
+	f := new(sessionKeyFile)
+	if data, err := ioutil.ReadFile(ss.keyPath); err == nil {
+		if err := json.Unmarshal(data, f); err != nil {
+			// Don't want to proceed since we could clobber unknown data.
+			return nil, fmt.Errorf("refresh session key: %v", err)
 		}
+	} else if !os.IsNotExist(err) {
+		// Don't want to proceed since we have permissions errors.
+		return nil, fmt.Errorf("refresh session key: %v", err)
 	}
-	return n
+	now := ss.now().UTC()
+	switch {
+	case f.Primary.Key() == nil || !now.Before(f.Primary.Expires):
+		// Primary key doesn't exist or expired.
+		primary, err := newSessionKey(now.Add(ss.keyRotation))
+		if err != nil {
+			return nil, fmt.Errorf("refresh session key: %v", err)
+		}
+		f = &sessionKeyFile{Primary: primary}
+	case now.After(f.Primary.Expires.Add(-ss.expiry)):
+		// Sessions would be cut short by key rotation time.
+		// Phase out primary to secondary ("grace period").
+		newPrimary, err := newSessionKey(now.Add(ss.keyRotation))
+		if err != nil {
+			return nil, fmt.Errorf("refresh session key: %v", err)
+		}
+		secondary := new(sessionKey)
+		*secondary = f.Primary
+		f = &sessionKeyFile{
+			Primary:   newPrimary,
+			Secondary: secondary,
+		}
+	case f.Secondary != nil && !now.Before(f.Secondary.Expires):
+		// Secondary key has expired. Clear it.
+		f.Secondary = nil
+	}
+	newData, err := json.Marshal(f)
+	if err != nil {
+		return nil, fmt.Errorf("refresh session key: %v", err)
+	}
+	tempPath := ss.keyPath + "~"
+	if err := ioutil.WriteFile(tempPath, newData, 0600); err != nil {
+		return nil, fmt.Errorf("refresh session key: %v", err)
+	}
+	if err := os.Rename(tempPath, ss.keyPath); err != nil {
+		return nil, fmt.Errorf("refresh session key: %v", err)
+	}
+	return f, nil
 }
 
 type sessionData struct {
-	key kdbcrypt.ComputedKey
-}
-
-// clear zeroes out the session's data as a weak defense against RAM compromise.
-func (data *sessionData) clear() {
-	for i := range data.key {
-		data.key[i] = 0
-	}
+	Key kdbcrypt.ComputedKey `json:"key"`
 }
 
 type session struct {
-	sessionData
-	token   string
-	expires time.Time
+	Data    sessionData `json:"data"`
+	Expires time.Time   `json:"expires"`
 }
 
-func (s *session) isValid() bool {
-	return s != nil && time.Now().Before(s.expires)
+type sessionKeyFile struct {
+	Primary   sessionKey  `json:"primary"`
+	Secondary *sessionKey `json:"secondary,omitempty"`
+}
+
+type sessionKey struct {
+	RawKey  []byte    `json:"key"`
+	Expires time.Time `json:"expires"`
+}
+
+func newSessionKey(expires time.Time) (sessionKey, error) {
+	k := sessionKey{
+		RawKey:  make([]byte, 32),
+		Expires: expires,
+	}
+	if _, err := rand.Read(k.RawKey); err != nil {
+		return sessionKey{}, fmt.Errorf("generate session key: %v", err)
+	}
+	return k, nil
+}
+
+func (k *sessionKey) Key() *[32]byte {
+	if k == nil || len(k.RawKey) != 32 {
+		return nil
+	}
+	arr := new([32]byte)
+	copy((*arr)[:], k.RawKey)
+	return arr
 }

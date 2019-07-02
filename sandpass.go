@@ -61,8 +61,8 @@ var (
 
 func main() {
 	flag.Parse()
-	if *dbPath == "" {
-		log.Println("must specify -db")
+	if *dbPath == "" || sessions.keyPath == "" {
+		log.Println("must specify -db and -session_key")
 		os.Exit(1)
 	}
 
@@ -76,7 +76,6 @@ func main() {
 		os.Exit(1)
 	}
 	initHandlers()
-	go gcSessions()
 	if err := http.ListenAndServe(*listen, nil); err != nil {
 		log.Println("listen:", err)
 		os.Exit(1)
@@ -154,19 +153,6 @@ func initHandlers() {
 
 	http.Handle("/", r)
 	router = r
-}
-
-func gcSessions() {
-	tick := time.Tick(*sessionGC)
-	for {
-		<-tick
-		mu.Lock()
-		n := sessions.clearInvalid()
-		mu.Unlock()
-		if n > 0 {
-			log.Printf("cleared %d invalid sessions", n)
-		}
-	}
 }
 
 func requestGroup(db *keepass.Database, vars map[string]string) (*keepass.Group, error) {
@@ -578,7 +564,9 @@ func nuke(w http.ResponseWriter, r *http.Request) error {
 	if err := dbStorage.remove(); err != nil {
 		return err
 	}
-	sessions.clear()
+	if err := sessions.invalidateAll(); err != nil {
+		return err
+	}
 	return redirectRoute(w, r, "root")
 }
 
@@ -621,9 +609,12 @@ func newDB(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	sessions.new(w, sessionData{
-		key: db.ComputedKey(),
+	_, err = sessions.new(w, sessionData{
+		Key: db.ComputedKey(),
 	})
+	if err != nil {
+		return err
+	}
 	return redirectRoute(w, r, "listGroups")
 }
 
@@ -698,9 +689,12 @@ func startSession(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	sessions.new(w, sessionData{
-		key: db.ComputedKey(),
+	_, err = sessions.new(w, sessionData{
+		Key: db.ComputedKey(),
 	})
+	if err != nil {
+		return err
+	}
 	return redirectRoute(w, r, "listGroups")
 }
 
