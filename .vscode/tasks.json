@@ -6,7 +6,7 @@
     {
       "label": "docker-spk build",
       "type": "shell",
-      "command": "docker-spk build -appkey=ztxr53r3uh7fuh6y8td7rjztyzf5d3c8sq9jhkjmr6wfvy41xnqh",
+      "command": "docker-spk build",
       "group": {
         "kind": "build",
         "isDefault": true
