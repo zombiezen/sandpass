@@ -47,6 +47,7 @@ COPY js /opt/app/js
 COPY templates /opt/app/templates
 COPY third_party/roboto/*.woff /opt/app/third_party/roboto/
 COPY third_party/clipboard.js/dist/clipboard.min.js /opt/app/third_party/clipboard.js/dist/clipboard.min.js
+COPY third_party/scowl/words /usr/share/dict/words
 COPY --from=build /sandpass/sandpass /opt/app/sandpass
 EXPOSE 8080
 VOLUME ["/data"]
