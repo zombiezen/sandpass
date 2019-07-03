@@ -73,7 +73,7 @@ func (ss *sessionStorage) new(w http.ResponseWriter, data sessionData) (*session
 		Name:   sessionCookie,
 		Value:  base64.StdEncoding.EncodeToString(ciphertext),
 		Path:   "/",
-		MaxAge: int(ss.expiry/time.Second) + 1,
+		MaxAge: int(ss.expiry / time.Second),
 	})
 	return s, nil
 }
