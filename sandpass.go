@@ -45,7 +45,6 @@ var (
 	listen       = flag.String("listen", "[::]:8080", "address to listen on")
 	dbPath       = flag.String("db", "", "path to database")
 	templatesDir = flag.String("templates_dir", "templates", "path to template directory")
-	sessionGC    = flag.Duration("session_gc", 1*time.Minute, "frequency at which sessions are to be cleared from memory after expiring")
 )
 
 // Read-only globals
