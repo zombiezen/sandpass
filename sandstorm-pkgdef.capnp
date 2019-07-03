@@ -88,7 +88,15 @@ const pkgdef :Spk.PackageDefinition = (
 );
 
 const launcher :Spk.Manifest.Command = (
-  argv = ["/sandstorm-http-bridge", "8080", "--", "/opt/app/sandpass", "-listen=[::]:8080", "-db=/var/keepass.kdb", "-static_dir=/opt/app", "-templates_dir=/opt/app/templates"],
+  argv = [
+    "/sandstorm-http-bridge", "8080", "--",
+    "/opt/app/sandpass",
+    "-listen=[::]:8080",
+    "-db=/var/keepass.kdb",
+    "-session_key=/var/session_key.json",
+    "-static_dir=/opt/app",
+    "-templates_dir=/opt/app/templates"
+  ],
   environ = [
     (key = "PATH", value = "/usr/local/bin:/usr/bin:/bin"),
     (key = "SANDSTORM", value = "1"),
