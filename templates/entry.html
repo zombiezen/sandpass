@@ -51,9 +51,11 @@
           {{with .Attachment -}}
             <a href="{{route "downloadAttachment" "uuid" $.Entry.UUID}}">{{.Name}}</a>
           {{- end}}
+          {{if $.Permissions.Has "write" -}}
           <div>
             <button type="button" data-href="{{route "confirmDeleteAttachment" "uuid" $.Entry.UUID}}">Delete</button>
           </div>
+          {{- end}}
         </div>
       </div>
       {{end}}
