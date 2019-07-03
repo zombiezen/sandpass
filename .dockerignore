@@ -2,6 +2,7 @@
 /sandpass
 *.spk
 /.sandstorm/
+/sandstorm-pkgdef.capnp
 .git/
 .gitignore
 
