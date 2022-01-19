@@ -1,5 +1,7 @@
 # Sandpass
 
+**This project is no longer maintained.**
+
 Sandpass is a web-based password manager based on the [KeePass][keepass]
 database format that runs on [Sandstorm][sandstorm].
 
